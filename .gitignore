@@ -366,3 +366,5 @@ FodyWeavers.xsd
 /ReverseGeocodeApi.csproj
 /ReverseGeocodeApi.http
 /ReverseGeocodeApi.sln
+/App_Data/clienttokens.db
+/appsettings.Development.json
