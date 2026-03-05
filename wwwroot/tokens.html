@@ -1,0 +1,496 @@
+﻿<!doctype html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ReverseGeocode — Credenciais</title>
+    <style>
+        :root {
+            --bg1: #0b1220;
+            --bg2: #111a2e;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: rgba(255,255,255,.10);
+            --shadow: 0 18px 60px rgba(0,0,0,.35);
+            --ok: #22c55e;
+            --warn: #f59e0b;
+            --bad: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+            color: var(--text);
+            background: radial-gradient(1200px 700px at 15% 15%, rgba(26,115,232,.18), transparent 55%), radial-gradient(900px 600px at 85% 30%, rgba(0,120,212,.18), transparent 50%), linear-gradient(180deg,var(--bg1),var(--bg2));
+            padding: 28px 16px;
+        }
+
+        .wrap {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        .top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            user-select: none;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logoMark {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, rgba(26,115,232,.95), rgba(0,120,212,.85));
+            border: 1px solid rgba(255,255,255,.14);
+            box-shadow: 0 10px 30px rgba(26,115,232,.22), inset 0 1px 0 rgba(255,255,255,.22);
+            color: rgba(255,255,255,.96);
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: .5px;
+            text-shadow: 0 1px 2px rgba(0,0,0,.25);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: .2px;
+        }
+
+        .logoutBtn {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.15);
+            background: rgba(255,255,255,.08);
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+            .logoutBtn:hover {
+                background: rgba(255,255,255,.12);
+            }
+
+        .card {
+            background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(17,28,51,.92));
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 340px minmax(0, 1fr);
+            gap: 16px;
+            align-items: start;
+        }
+
+        @media(max-width:900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            border: 1px solid rgba(255,255,255,.10);
+            background: rgba(255,255,255,.03);
+            border-radius: 16px;
+            padding: 16px;          
+            min-width: 0;
+        }
+
+            .panel h3 {
+                margin: 0 0 12px;
+                font-size: 16px;
+            }
+
+        .label {
+            color: rgba(255,255,255,.55);
+            font-size: 12px;
+            margin: 12px 0 6px;
+        }
+
+        .field {
+            width: 100%;
+            padding: 12px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(0,0,0,.20);
+            color: var(--text);
+            outline: none;
+            font-size: 14px;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            letter-spacing: .1px;
+        }
+
+        .btnRow {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.15);
+            background: rgba(255,255,255,.08);
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform .08s ease, background .18s ease, opacity .18s ease;
+        }
+
+            .btn:hover {
+                background: rgba(255,255,255,.12);
+            }
+
+            .btn:active {
+                transform: translateY(1px);
+            }
+
+            .btn.primary {
+                border-color: rgba(26,115,232,.40);
+                background: rgba(26,115,232,.18);
+            }
+
+            .btn[disabled] {
+                opacity: .45;
+                cursor: not-allowed;
+            }
+             
+        .status {
+            font-size: 12px;
+            color: rgba(255,255,255,.60);
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.03);
+            user-select: none;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        pre {
+            font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+            margin: 10px 0 0;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,.10);
+            background: rgba(0,0,0,.20);
+            max-height: 120px;
+            overflow: auto;
+            font-size: 12px;
+            line-height: 1.45;
+            white-space: pre;
+        }
+
+        pre {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(26,115,232,.7) rgba(255,255,255,.04);
+        }
+
+        /* Scrollbar geral */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,.03);
+            border-radius: 10px;
+        }
+
+        /* Thumb */
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(26,115,232,.6), rgba(0,120,212,.6));
+            border-radius: 10px;
+            border: 2px solid rgba(0,0,0,.25);
+        }
+
+            /* Hover */
+            ::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(180deg, rgba(26,115,232,.9), rgba(0,120,212,.9));
+            }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="top">
+            <div class="brand">
+                <div class="logoMark" aria-hidden="true">RG</div>
+                <div>
+                    <h1>Reverse Geocode API — Credenciais</h1>
+                </div>
+            </div>
+
+            <button id="logoutBtn" class="logoutBtn" type="button">Logout</button>
+        </div>
+
+        <div class="card">
+            <div class="grid">
+                <div class="panel">
+                    <h3>Utilizador</h3>
+
+                    <div class="label">Email</div>
+                    <input id="email" class="field" readonly value="…" />
+
+                    <div class="label">Client Token (GUID)</div>
+                    <input id="token" class="field mono" readonly value="" placeholder="Ainda não gerado" />
+
+                    <div class="btnRow">
+                        <button id="generate" class="btn primary" type="button">Gerar token</button>
+                        <button id="copyGuid" class="btn" type="button" disabled>Copiar GUID</button>
+                        <span id="status" class="status">A carregar…</span>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>Como usar a API</h3>
+
+                    <div class="note">
+                        Em cada pedido, envia:
+                        <ul>
+                            <li><b>Authorization</b>: Basic base64(<i>email:guid</i>)</li>
+                        </ul>
+                    </div>
+
+                    <div class="note">
+                        Endpoint: <b>/api/v1/reverse-geocode</b><br>
+                        Parâmetros: <b>lat (latitude)</b>, <b>lon (longitude)</b>
+                    </div>
+
+                    <pre id="curl">Gera o token para ver exemplos.</pre>
+                    <pre id="respOk">Gera o token para ver exemplos.</pre>
+                    <pre id="respErr">Gera o token para ver exemplos.</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+
+        function setStatus(text, kind) {
+            const el = $("status");
+            el.textContent = text;
+            el.style.borderColor =
+                kind === "ok" ? "rgba(34,197,94,.35)" :
+                    kind === "bad" ? "rgba(239,68,68,.35)" :
+                        kind === "warn" ? "rgba(245,158,11,.35)" :
+                            "rgba(255,255,255,.12)";
+            el.style.background =
+                kind === "ok" ? "rgba(34,197,94,.10)" :
+                    kind === "bad" ? "rgba(239,68,68,.10)" :
+                        kind === "warn" ? "rgba(245,158,11,.10)" :
+                            "rgba(255,255,255,.03)";
+        }
+
+        function updateExamples(email, guid) {
+            const base = window.location.origin;
+
+            $("curl").textContent =
+                `Linux / macOS
+
+curl -X GET "${base}/api/v1/reverse-geocode?lat=40.123&lon=-8.456" \\
+  -H "Authorization: Basic $(printf '${email}:${guid}' | base64)"
+
+Windows (PowerShell)
+
+$pair = "${email}:${guid}"
+$base64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($pair))
+
+curl -X GET "${base}/api/v1/reverse-geocode?lat=40.123&lon=-8.456" \`
+  -H "Authorization: Basic $base64"`;
+
+            $("respOk").textContent =
+                `HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{
+  "dataset": "CAOP2025",
+  "datasetCreatedAtUtc": "2026-03-05T14:27:35.1782843Z",
+  "dicofre": "060225",
+  "freguesia": "Cantanhede",
+  "concelho": "Cantanhede",
+  "distrito": "Coimbra",
+  "areaHa": 4176.01,
+  "descricao": "Cantanhede"
+}`;
+
+            $("respErr").textContent =
+                `401 Unauthorized
+Missing Authorization header.
+
+401 Unauthorized
+Invalid Basic token. / Invalid GUID.
+
+403 Forbidden
+Invalid email or token.
+
+400 Bad Request
+Invalid latitude or longitude.
+
+500 Internal Server Error
+{
+  "title": "Unexpected error",
+  "traceId": "00-..."
+}`;
+        }
+
+        function setTokenUi(email, guid) {
+            $("email").value = email || "";
+            $("token").value = guid || "";
+            $("copyGuid").disabled = !guid;
+
+            if (guid) {
+                $("generate").disabled = true; // ✅ já existe → desativa
+                updateExamples(email || "<EMAIL>", guid);
+                setStatus("Token já existe ✓", "ok");
+            } else {
+                $("generate").disabled = false;
+
+                $("curl").textContent = "Gera primeiro o token para ver os exemplos.";
+                $("respOk").textContent = "Gera primeiro o token para ver os exemplos.";
+                $("respErr").textContent = "Gera primeiro o token para ver os exemplos.";
+
+                setStatus("Autenticado ✓ (gera token quando quiseres)", "ok");
+            }
+        }
+
+        async function loadMe() {
+            const r = await fetch('/auth/me', { credentials: 'include' });
+            if (!r.ok) { location.href = '/login.html'; return null; }
+            return await r.json();
+        }
+
+        // ✅ read-only: não cria token
+        async function getExistingToken() {
+            const r = await fetch('/auth/client-token', { credentials: 'include' });
+            if (!r.ok) {
+                console.warn("client-token GET failed", r.status);
+                return null;
+            }
+            return await r.json();
+        }
+
+        async function generateToken() {
+            const r = await fetch('/auth/client-token', { method: 'POST', credentials: 'include' });
+            if (!r.ok) {
+                const t = await r.text().catch(() => "");
+                throw new Error(t || ("HTTP " + r.status));
+            }
+            return await r.json();
+        }
+
+        async function doLogout() {
+            try {
+                await fetch('/logout', { method: 'POST', credentials: 'include' });
+            } finally {
+                location.href = '/login.html';
+            }
+        }
+
+        $("logoutBtn").addEventListener("click", doLogout);
+
+        $("generate").addEventListener("click", async () => {
+            $("generate").disabled = true; // ✅ enquanto gera
+            setStatus("A gerar token…", "warn");
+
+            try {
+                const tok = await generateToken();
+                const email = tok.email || $("email").value || "";
+                const guid = tok.clientToken || "";
+
+                $("email").value = email;
+                $("token").value = guid;
+                $("copyGuid").disabled = !guid;
+
+                if (guid) {
+                    updateExamples(email || "<EMAIL>", guid);
+                    setStatus("Token gerado ✓", "ok");
+                    $("generate").disabled = true; // ✅ após gerar, fica desativado
+                } else {
+                    // não esperado, mas mantém seguro
+                    setStatus("Resposta inválida", "bad");
+                    $("generate").disabled = false;
+                }
+            } catch (e) {
+                setStatus("Erro a gerar token", "bad");
+                $("token").value = "";
+                $("copyGuid").disabled = true;
+                $("curl").textContent = "Não foi possível gerar token.";
+                $("respOk").textContent = "";
+                $("respErr").textContent = "";
+                console.error(e);
+                $("generate").disabled = false; // ✅ só reativa se falhou
+            }
+        });
+
+        $("token").addEventListener("click", () => {
+            $("token").select();
+        });
+
+        $("copyGuid").addEventListener("click", async () => {
+            const guid = ($("token").value || "").trim();
+            if (!guid) return;
+
+            try {
+                await navigator.clipboard.writeText(guid);
+                setStatus("GUID copiado ✓", "ok");
+            } catch {
+                setStatus("Não foi possível copiar", "bad");
+            }
+        });
+
+        (async () => {
+            setStatus("A carregar…", "");
+            const me = await loadMe();
+            if (!me) return;
+
+            // primeiro mostra email
+            $("email").value = me.email || "";
+            $("token").value = "";
+            $("copyGuid").disabled = true;
+
+            // depois verifica se já existe token (sem criar)
+            const existing = await getExistingToken();
+
+            // esperado: { email, clientToken, hasToken }
+            if (existing && existing.hasToken && existing.clientToken) {
+                setTokenUi(existing.email || me.email, existing.clientToken);
+            } else {
+                setTokenUi(me.email, "");
+            }
+        })();
+    </script>
+</body>
+</html>

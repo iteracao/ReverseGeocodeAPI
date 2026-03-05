@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<!-- LOGIN VERSION: 2026-02-28 15:41 -->
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Calendar — Sign in</title>
+    <style>
+        :root {
+            --bg1: #0b1220;
+            --bg2: #111a2e;
+            --card: #0f172a;
+            --card2: #111c33;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: rgba(255,255,255,.10);
+            --shadow: 0 18px 60px rgba(0,0,0,.35);
+            /* Brand */
+            --google-blue: #1a73e8;
+            --google-blue-hover: #1669d2;
+            --ms-blue: #0078d4;
+            --ms-blue-hover: #106ebe;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+            color: var(--text);
+            background: radial-gradient(1200px 700px at 15% 15%, rgba(26,115,232,.18), transparent 55%), radial-gradient(900px 600px at 85% 30%, rgba(0,120,212,.18), transparent 50%), linear-gradient(180deg, var(--bg1), var(--bg2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px 16px;
+        }
+
+        .wrap {
+            width: 100%;
+            max-width: 460px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 16px;
+            user-select: none;
+        }
+
+        .logoMark {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, rgba(26,115,232,.95), rgba(0,120,212,.85));
+            border: 1px solid rgba(255,255,255,.14);
+            box-shadow: 0 10px 30px rgba(26,115,232,.22), inset 0 1px 0 rgba(255,255,255,.22);
+            color: rgba(255,255,255,.96);
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: .5px;
+            text-shadow: 0 1px 2px rgba(0,0,0,.25);
+            user-select: none;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin: 0;
+            letter-spacing: .2px;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin: 8px 0 18px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(17,28,51,.92));
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: transform .08s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+            outline: none;
+        }
+
+            .btn:active {
+                transform: translateY(1px);
+            }
+
+            .btn:focus-visible {
+                box-shadow: 0 0 0 4px rgba(255,255,255,.10);
+            }
+
+            .btn img {
+                width: 18px;
+                height: 18px;
+                display: block;
+            }
+
+            /* Google button (brand blue) */
+            .btn.google {
+                background: linear-gradient(180deg, var(--google-blue), var(--google-blue));
+                color: white;
+                box-shadow: 0 10px 26px rgba(26,115,232,.22);
+            }
+
+                .btn.google:hover {
+                    background: linear-gradient(180deg, var(--google-blue-hover), var(--google-blue-hover));
+                }
+
+            /* Microsoft button (brand blue) */
+            .btn.microsoft {
+                margin-top: 12px;
+                background: linear-gradient(180deg, var(--ms-blue), var(--ms-blue));
+                color: white;
+                box-shadow: 0 10px 26px rgba(0,120,212,.20);
+            }
+
+                .btn.microsoft:hover {
+                    background: linear-gradient(180deg, var(--ms-blue-hover), var(--ms-blue-hover));
+                }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 14px 0;
+            color: rgba(255,255,255,.35);
+            font-size: 12px;
+            user-select: none;
+        }
+
+            .divider::before, .divider::after {
+                content: "";
+                height: 1px;
+                flex: 1;
+                background: rgba(255,255,255,.10);
+            }
+
+        .footer {
+            margin-top: 14px;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255,255,255,.45);
+            line-height: 1.4;
+        }
+
+        .hint {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px dashed rgba(255,255,255,.14);
+            background: rgba(255,255,255,.03);
+            color: rgba(255,255,255,.55);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .btn {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="brand">
+            <div class="logoMark" aria-hidden="true">RG</div>
+            <h1>Reverse Geocode API</h1>
+        </div>
+
+        <div class="subtitle">
+            Sign in to use this API.<br />
+            Your session is secured with Google or Microsoft.
+        </div>
+
+        <div class="card">
+            <button class="btn google" type="button" onclick="location.href='auth/google'">
+                <!-- Google “G” mark (commonly used SVG) -->
+                <img alt="" aria-hidden="true"
+                     src="google.svg" />
+                Continue with Google
+            </button>
+
+            <button class="btn microsoft" type="button" onclick="location.href='auth/microsoft'">
+                <!-- Microsoft mark (commonly used SVG) -->
+                <img alt="" aria-hidden="true"
+                     src="microsoft.svg" />
+                Continue with Microsoft
+            </button>
+
+            <div class="divider">or</div>
+
+            <div class="hint">
+                Tip: If you were already signed in with your provider, you may only need to pick an account.
+            </div>
+
+            <div class="footer">
+                By continuing, you agree to sign in with your chosen provider.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (async () => {
+            try {
+                const r = await fetch('/auth/me', { credentials: 'include' });
+                if (r.ok) {
+                    location.replace('/tokens.html');
+                }
+            } catch { }
+        })();
+    </script>
+</body>
+</html>

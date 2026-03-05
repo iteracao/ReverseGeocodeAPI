@@ -1,0 +1,23 @@
+{
+  "inputFile": "Continente_CAOP2025.gpkg",
+  "inputSha256": "7849fb97c77cac65b54d5047b47ecbce8cdfe7e20118dfae794c45f61158211c",
+  "output": {
+    "tsvGz": "freguesias.tsv.gz"
+  },
+  "layer": {
+    "name": "cont_freguesias",
+    "geomType": "wkbMultiPolygon"
+  },
+  "srs": {
+    "source": "PROJCS[\u0022ETRS89 / Portugal TM06\u0022,GEOGCS[\u0022ETRS89\u0022,DATUM[\u0022European_Terrestrial_Reference_System_1989\u0022,SPHEROID[\u0022GRS 1980\u0022,6378137,298.257222101,AUTHORITY[\u0022EPSG\u0022,\u00227019\u0022]],AUTHORITY[\u0022EPSG\u0022,\u00226258\u0022]],PRIMEM[\u0022Greenwich\u0022,0,AUTHORITY[\u0022EPSG\u0022,\u00228901\u0022]],UNIT[\u0022degree\u0022,0.0174532925199433,AUTHORITY[\u0022EPSG\u0022,\u00229122\u0022]],AUTHORITY[\u0022EPSG\u0022,\u00224258\u0022]],PROJECTION[\u0022Transverse_Mercator\u0022],PARAMETER[\u0022latitude_of_origin\u0022,39.6682583333333],PARAMETER[\u0022central_meridian\u0022,-8.13310833333333],PARAMETER[\u0022scale_factor\u0022,1],PARAMETER[\u0022false_easting\u0022,0],PARAMETER[\u0022false_northing\u0022,0],UNIT[\u0022metre\u0022,1,AUTHORITY[\u0022EPSG\u0022,\u00229001\u0022]],AXIS[\u0022Easting\u0022,EAST],AXIS[\u0022Northing\u0022,NORTH],AUTHORITY[\u0022EPSG\u0022,\u00223763\u0022]]",
+    "targetEpsg": 4326
+  },
+  "counts": {
+    "featuresSeen": 3049,
+    "rowsWritten": 3049,
+    "skippedNoGeom": 0,
+    "skippedBadGeom": 0
+  },
+  "createdAtUtc": "2026-03-05T14:27:35.1782843Z",
+  "elapsed": "00:00:13"
+}
