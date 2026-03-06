@@ -168,7 +168,7 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Title = "ReverseGeocode API",
+        Title = "Reverse Geocode API",
         Version = "v1",
         Description = "Reverse geocoding API for Portugal based on official CAOP administrative boundaries. Use HTTP Basic authentication with e-mail as username and the generated GUID client token as password."
     });
@@ -184,7 +184,7 @@ builder.Services.AddSwaggerGen(options =>
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
     {
-        options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+        options.IncludeXmlComments(xmlPath);
     }
 
     // Botão Authorize (Basic)
@@ -251,7 +251,11 @@ app.Use(async (ctx, next) =>
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.DocumentTitle = "Reverse Geocode API";
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Reverse Geocode API v1");
+    });
 }
 
 app.UseHttpsRedirection();
@@ -330,6 +334,21 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.MapControllers().RequireRateLimiting("api");
+
+app.MapGet("/health", (ReverseGeocodeApi.Services.CaopDatasetService datasetService) =>
+{
+    var loaded = datasetService.IsLoaded;
+
+    return Results.Ok(new
+    {
+        status = loaded ? "ok" : "starting",
+        dataset = datasetService.ActiveDatasetName,
+        loaded,
+        records = datasetService.LoadedRecordCount,
+        datasetCreatedAtUtc = datasetService.LoadedDatasetCreatedAtUtc,
+        timeUtc = DateTime.UtcNow
+    });
+});
 
 // endpoint que devolve JSON em produção (e também serve em dev se quiseres)
 app.MapGet("/error", (HttpContext ctx) =>

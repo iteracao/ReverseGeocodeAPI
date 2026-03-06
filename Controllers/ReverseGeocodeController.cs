@@ -14,6 +14,7 @@ using ReverseGeocodeApi.Services;
 [ApiController]
 [Route("api/v1")]
 [Produces("application/json")]
+[Tags("Reverse Geocode")]
 public sealed class ReverseGeocodeController : ControllerBase
 {
     private readonly CaopDatasetService _service;

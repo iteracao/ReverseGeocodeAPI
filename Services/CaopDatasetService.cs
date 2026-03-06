@@ -27,6 +27,26 @@ public sealed class CaopDatasetService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Gets the configured active dataset name.
+    /// </summary>
+    public string ActiveDatasetName => _options.ActiveDataset ?? "";
+
+    /// <summary>
+    /// Gets a value indicating whether the active dataset has already been loaded into memory.
+    /// </summary>
+    public bool IsLoaded => _active != null;
+
+    /// <summary>
+    /// Gets the number of loaded records in the active dataset, or zero if it has not been loaded yet.
+    /// </summary>
+    public int LoadedRecordCount => _active?.Records.Count ?? 0;
+
+    /// <summary>
+    /// Gets the active dataset creation timestamp in UTC, when available and after loading.
+    /// </summary>
+    public string? LoadedDatasetCreatedAtUtc => _active?.CreatedAtUtc;
+
     public LoadedDataset GetActiveOrLoad()
     {
         var current = _active;
