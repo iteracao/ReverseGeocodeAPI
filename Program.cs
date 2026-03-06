@@ -20,12 +20,6 @@ Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "Log
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .WriteTo.File(
-        path: Path.Combine(builder.Environment.ContentRootPath, "Logs", "api-.log"),
-        rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 30,
-        shared: true)
     .CreateLogger();
 
 builder.Host.UseSerilog();
