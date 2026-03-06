@@ -195,12 +195,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
-app.UseAuthorization();
 
 app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/api"), apiBranch =>
 {
     apiBranch.UseMiddleware<ReverseGeocodeApi.Security.BasicClientTokenMiddleware>();
 });
+
+app.UseAuthorization();
 
 app.Use(async (ctx, next) =>
 {
