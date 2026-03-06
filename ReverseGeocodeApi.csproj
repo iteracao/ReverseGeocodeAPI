@@ -32,6 +32,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="appsettings.Development.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Data\CAOP2025\freguesias.tsv.gz">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
