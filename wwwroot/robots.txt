@@ -1,2 +1,6 @@
 User-agent: *
 Allow: /
+
+# Do not index authenticated pages
+Disallow: /tokens.html
+Disallow: /auth/
