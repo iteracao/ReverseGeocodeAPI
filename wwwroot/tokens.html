@@ -3,7 +3,42 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>ReverseGeocode — Credenciais</title>
+
+    <title>Reverse Geocode API — Credentials & Client Token</title>
+
+    <meta name="description" content="Manage your Reverse Geocode API client token and access credentials. Authenticate with Google or Microsoft to generate and use your API token." />
+
+    <meta name="keywords" content="reverse geocode api portugal, caop reverse geocode api, dicofre api portugal, portugal administrative api, freguesia api portugal" />
+
+    <meta name="author" content="Iteração" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#0b1220" />
+
+    <link rel="canonical" href="/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Reverse Geocode API — Credentials" />
+    <meta property="og:description" content="Access your Reverse Geocode API credentials and generate your client token." />
+    <meta property="og:site_name" content="Reverse Geocode API" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Reverse Geocode API Credentials" />
+    <meta name="twitter:description" content="Generate and manage your Reverse Geocode API client token." />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": "Reverse Geocode API",
+          "description": "API for resolving GPS coordinates into Portuguese administrative divisions using CAOP boundaries.",
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "Any"
+        }
+    </script>
+
     <style>
         :root {
             --bg1: #0b1220;
@@ -117,7 +152,7 @@
             border: 1px solid rgba(255,255,255,.10);
             background: rgba(255,255,255,.03);
             border-radius: 16px;
-            padding: 16px;          
+            padding: 16px;
             min-width: 0;
         }
 
@@ -184,7 +219,7 @@
                 opacity: .45;
                 cursor: not-allowed;
             }
-             
+
         .status {
             font-size: 12px;
             color: rgba(255,255,255,.60);
@@ -296,6 +331,10 @@
         </div>
     </div>
 
+    <footer style="text-align:center;margin-top:30px;color:rgba(255,255,255,.45);font-size:12px">
+        Reverse Geocode API — Portugal CAOP administrative boundaries
+    </footer>
+
     <script>
         const $ = (id) => document.getElementById(id);
 
@@ -321,7 +360,7 @@
                 `Linux / macOS
 
 curl -X GET "${base}/api/v1/reverse-geocode?lat=40.123&lon=-8.456" \\
-  -H "Authorization: Basic $(printf '${email}:${guid}' | base64)"
+      -H "Authorization: Basic $(printf '${email}:${guid}' | base64)"
 
 Windows (PowerShell)
 
@@ -329,21 +368,21 @@ $pair = "${email}:${guid}"
 $base64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($pair))
 
 curl -X GET "${base}/api/v1/reverse-geocode?lat=40.123&lon=-8.456" \`
-  -H "Authorization: Basic $base64"`;
+      -H "Authorization: Basic $base64"`;
 
             $("respOk").textContent =
                 `HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
 {
-  "dataset": "CAOP2025",
-  "datasetCreatedAtUtc": "2026-03-05T14:27:35.1782843Z",
-  "dicofre": "060225",
-  "freguesia": "Cantanhede",
-  "concelho": "Cantanhede",
-  "distrito": "Coimbra",
-  "areaHa": 4176.01,
-  "descricao": "Cantanhede"
+      "dataset": "CAOP2025",
+      "datasetCreatedAtUtc": "2026-03-05T14:27:35.1782843Z",
+      "dicofre": "060225",
+      "freguesia": "Cantanhede",
+      "concelho": "Cantanhede",
+      "distrito": "Coimbra",
+      "areaHa": 4176.01,
+      "descricao": "Cantanhede"
 }`;
 
             $("respErr").textContent =
@@ -361,8 +400,8 @@ Invalid latitude or longitude.
 
 500 Internal Server Error
 {
-  "title": "Unexpected error",
-  "traceId": "00-..."
+      "title": "Unexpected error",
+      "traceId": "00-..."
 }`;
         }
 

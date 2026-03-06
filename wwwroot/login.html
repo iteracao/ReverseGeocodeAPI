@@ -1,25 +1,47 @@
 <!doctype html>
 <html lang="en">
-<!-- LOGIN VERSION: 2026-02-28 15:41 -->
+<!-- LOGIN VERSION: 2026-03-06 10:05 -->
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Calendar — Sign in</title>
+
+    <title>Reverse Geocode API Portugal — Official CAOP-based reverse geocoding</title>
+    <meta name="description" content="Reverse Geocode API for Portugal using official CAOP administrative boundaries. Resolve latitude and longitude into distrito, concelho, freguesia and DICOFRE." />
+    <meta name="keywords" content="reverse geocode api portugal, caop api, dicofre api, freguesia api, concelho api, distrito api, portugal reverse geocoding, caop reverse geocode" />
+    <meta name="author" content="Iteração" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="theme-color" content="#0b1220" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Reverse Geocode API Portugal" />
+    <meta property="og:description" content="Official CAOP-based reverse geocoding for Portugal. Resolve coordinates into distrito, concelho, freguesia and DICOFRE." />
+    <meta property="og:site_name" content="Reverse Geocode API" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Reverse Geocode API Portugal" />
+    <meta name="twitter:description" content="Official CAOP-based reverse geocoding for Portugal using CAOP administrative boundaries." />
+
+    <link rel="canonical" href="/" />
+
     <style>
         :root {
             --bg1: #0b1220;
             --bg2: #111a2e;
-            --card: #0f172a;
-            --card2: #111c33;
+            --card: rgba(15, 23, 42, .92);
+            --card2: rgba(17, 28, 51, .92);
             --text: #e5e7eb;
             --muted: #9ca3af;
+            --muted2: rgba(255,255,255,.62);
             --border: rgba(255,255,255,.10);
+            --border-strong: rgba(255,255,255,.16);
             --shadow: 0 18px 60px rgba(0,0,0,.35);
-            /* Brand */
             --google-blue: #1a73e8;
             --google-blue-hover: #1669d2;
             --ms-blue: #0078d4;
             --ms-blue-hover: #106ebe;
+            --accent: #60a5fa;
+            --accent2: #38bdf8;
+            --ok: #22c55e;
         }
 
         * {
@@ -30,34 +52,51 @@
             height: 100%;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             margin: 0;
             font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
             color: var(--text);
             background: radial-gradient(1200px 700px at 15% 15%, rgba(26,115,232,.18), transparent 55%), radial-gradient(900px 600px at 85% 30%, rgba(0,120,212,.18), transparent 50%), linear-gradient(180deg, var(--bg1), var(--bg2));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 28px 16px;
+            padding: 36px 16px 48px;
+        }
+
+        .pageGlow {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(600px 180px at 50% 0%, rgba(96,165,250,.08), transparent 70%), radial-gradient(320px 320px at 85% 10%, rgba(56,189,248,.07), transparent 70%);
         }
 
         .wrap {
             width: 100%;
-            max-width: 460px;
+            max-width: 980px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            padding-bottom: 28px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 26px;
         }
 
         .brand {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 12px;
             justify-content: center;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             user-select: none;
         }
 
         .logoMark {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 14px;
             display: flex;
             align-items: center;
@@ -74,26 +113,81 @@
         }
 
         h1 {
-            font-size: 22px;
+            font-size: 32px;
             margin: 0;
             letter-spacing: .2px;
+            line-height: 1.1;
+        }
+
+        .heroText {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(96,165,250,.22);
+            background: rgba(96,165,250,.08);
+            color: #cfe7ff;
+            font-size: 12px;
+            letter-spacing: .3px;
+            text-transform: uppercase;
+        }
+
+        .eyebrowDot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #60a5fa, #38bdf8);
+            box-shadow: 0 0 16px rgba(96,165,250,.9);
         }
 
         .subtitle {
-            text-align: center;
-            margin: 8px 0 18px;
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.5;
+            margin: 14px auto 0;
+            color: var(--muted2);
+            font-size: 16px;
+            line-height: 1.7;
+            max-width: 760px;
         }
 
-        .card {
-            background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(17,28,51,.92));
+        .heroGrid {
+            display: grid;
+            grid-template-columns: 1.2fr .9fr;
+            gap: 22px;
+            align-items: start;
+            margin-top: 28px;
+        }
+
+        .panel {
+            background: linear-gradient(180deg, var(--card), var(--card2));
             border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 22px;
             box-shadow: var(--shadow);
             backdrop-filter: blur(10px);
+        }
+
+        .panelTitle {
+            margin: 0 0 10px;
+            font-size: 18px;
+            line-height: 1.3;
+        }
+
+        .panelText {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.65;
+        }
+
+        .loginCard {
+            position: sticky;
+            top: 18px;
         }
 
         .btn {
@@ -108,7 +202,7 @@
             cursor: pointer;
             font-size: 15px;
             font-weight: 600;
-            transition: transform .08s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+            transition: transform .08s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease, filter .18s ease;
             outline: none;
         }
 
@@ -120,13 +214,16 @@
                 box-shadow: 0 0 0 4px rgba(255,255,255,.10);
             }
 
+            .btn:hover {
+                filter: brightness(1.03);
+            }
+
             .btn img {
                 width: 18px;
                 height: 18px;
                 display: block;
             }
 
-            /* Google button (brand blue) */
             .btn.google {
                 background: linear-gradient(180deg, var(--google-blue), var(--google-blue));
                 color: white;
@@ -137,7 +234,6 @@
                     background: linear-gradient(180deg, var(--google-blue-hover), var(--google-blue-hover));
                 }
 
-            /* Microsoft button (brand blue) */
             .btn.microsoft {
                 margin-top: 12px;
                 background: linear-gradient(180deg, var(--ms-blue), var(--ms-blue));
@@ -166,14 +262,6 @@
                 background: rgba(255,255,255,.10);
             }
 
-        .footer {
-            margin-top: 14px;
-            text-align: center;
-            font-size: 12px;
-            color: rgba(255,255,255,.45);
-            line-height: 1.4;
-        }
-
         .hint {
             margin-top: 10px;
             padding: 10px 12px;
@@ -185,51 +273,291 @@
             line-height: 1.45;
         }
 
+        .footer {
+            margin-top: 14px;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255,255,255,.45);
+            line-height: 1.5;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .feature {
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,.08);
+            background: rgba(255,255,255,.025);
+        }
+
+            .feature h3 {
+                margin: 0 0 8px;
+                font-size: 14px;
+                color: #f3f4f6;
+            }
+
+            .feature p {
+                margin: 0;
+                color: var(--muted);
+                font-size: 13px;
+                line-height: 1.6;
+            }
+
+        .miniExample {
+            margin-top: 18px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,.08);
+            background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+            overflow: hidden;
+        }
+
+        .miniExampleHeader {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            font-size: 12px;
+            color: rgba(255,255,255,.62);
+            background: rgba(255,255,255,.02);
+        }
+
+        .miniExampleBody {
+            padding: 14px;
+        }
+
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 12px;
+            line-height: 1.65;
+            color: #dbeafe;
+        }
+
+        .points {
+            display: grid;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .point {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .pointBadge {
+            flex: 0 0 auto;
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(180deg, rgba(96,165,250,.95), rgba(59,130,246,.85));
+            box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 8px 18px rgba(59,130,246,.18);
+        }
+
+        .smallNote {
+            margin-top: 16px;
+            color: rgba(255,255,255,.46);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .sectionTitle {
+            margin: 0 0 8px;
+            font-size: 15px;
+            color: #f8fafc;
+        }
+
+        @media (max-width: 860px) {
+            .heroGrid {
+                grid-template-columns: 1fr;
+            }
+
+            .loginCard {
+                position: static;
+            }
+        }
+
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 27px;
+            }
+
+            .subtitle {
+                font-size: 15px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .panel {
+                padding: 18px;
+                border-radius: 18px;
+            }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             .btn {
                 transition: none;
             }
+
+            html {
+                scroll-behavior: auto;
+            }
         }
     </style>
+
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Reverse Geocode API",
+          "url": "/",
+          "description": "Reverse Geocode API for Portugal using official CAOP administrative boundaries."
+        }
+    </script>
 </head>
 <body>
-    <div class="wrap">
-        <div class="brand">
-            <div class="logoMark" aria-hidden="true">RG</div>
-            <h1>Reverse Geocode API</h1>
-        </div>
+    <div class="pageGlow" aria-hidden="true"></div>
 
-        <div class="subtitle">
-            Sign in to use this API.<br />
-            Your session is secured with Google or Microsoft.
-        </div>
+    <main class="wrap">
+        <section class="hero">
+            <div class="heroText">
+                <div class="eyebrow">
+                    <span class="eyebrowDot" aria-hidden="true"></span>
+                    Portugal administrative reverse geocoding
+                </div>
 
-        <div class="card">
-            <button class="btn google" type="button" onclick="location.href='auth/google'">
-                <!-- Google “G” mark (commonly used SVG) -->
-                <img alt="" aria-hidden="true"
-                     src="google.svg" />
-                Continue with Google
-            </button>
+                <div class="brand">
+                    <div class="logoMark" aria-hidden="true">RG</div>
+                    <h1>Reverse Geocode API</h1>
+                </div>
 
-            <button class="btn microsoft" type="button" onclick="location.href='auth/microsoft'">
-                <!-- Microsoft mark (commonly used SVG) -->
-                <img alt="" aria-hidden="true"
-                     src="microsoft.svg" />
-                Continue with Microsoft
-            </button>
+                <div class="subtitle">
+                    Resolve latitude and longitude into official Portuguese administrative data using
+                    <strong>CAOP-based boundaries</strong>, returning <strong>distrito</strong>,
+                    <strong>concelho</strong>, <strong>freguesia</strong> and <strong>DICOFRE</strong>.
+                </div>
+            </div>
+        </section>
 
-            <div class="divider">or</div>
+        <section class="heroGrid">
+            <div class="panel">
+                <h2 class="panelTitle">Objectives and characteristics</h2>
+                <p class="panelText">
+                    This API was designed for systems that need reliable administrative mapping in Portugal.
+                    Instead of generic place names, it returns consistent territorial information aligned with
+                    official boundary data, making it suitable for integrations, data enrichment, validation,
+                    routing support and public or private digital services.
+                </p>
 
-            <div class="hint">
-                Tip: If you were already signed in with your provider, you may only need to pick an account.
+                <div class="grid">
+                    <article class="feature">
+                        <h3>Official administrative focus</h3>
+                        <p>
+                            Built around Portuguese administrative divisions, prioritising correct territorial
+                            identification over generic consumer-maps output.
+                        </p>
+                    </article>
+
+                    <article class="feature">
+                        <h3>DICOFRE included</h3>
+                        <p>
+                            Returns the official INE code for the freguesia, which is highly useful for
+                            integrations, classification and downstream business processes.
+                        </p>
+                    </article>
+
+                    <article class="feature">
+                        <h3>Secure access</h3>
+                        <p>
+                            Access is protected through Google or Microsoft sign-in and a generated client token,
+                            helping keep usage controlled and auditable.
+                        </p>
+                    </article>
+
+                    <article class="feature">
+                        <h3>Operational safeguards</h3>
+                        <p>
+                            Includes request logging, rate limiting and controlled API access for reliable usage
+                            and safer public exposure.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="miniExample" aria-label="Example response">
+                    <div class="miniExampleHeader">Example result</div>
+                    <div class="miniExampleBody">
+<pre>{
+  "dicofre": "060334",
+  "freguesia": "União das freguesias de Coimbra (Sé Nova, Santa Cruz, Almedina e São Bartolomeu)",
+  "concelho": "Coimbra",
+  "distrito": "Coimbra"
+}</pre>
+                    </div>
+                </div>
+
+                <div class="points">
+                    <div class="point">
+                        <span class="pointBadge">1</span>
+                        <span>Sign in with Google or Microsoft to access the portal.</span>
+                    </div>
+                    <div class="point">
+                        <span class="pointBadge">2</span>
+                        <span>Generate or view your client token after authentication.</span>
+                    </div>
+                    <div class="point">
+                        <span class="pointBadge">3</span>
+                        <span>Use the token to authenticate API requests and integrate the service into your applications.</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="footer">
-                By continuing, you agree to sign in with your chosen provider.
-            </div>
-        </div>
-    </div>
+            <aside class="panel loginCard" aria-label="Sign in panel">
+                <h2 class="sectionTitle">Sign in to access the API</h2>
+                <p class="panelText">
+                    Your session is secured with your chosen identity provider.
+                </p>
+
+                <div style="margin-top:16px;">
+                    <button class="btn google" type="button" onclick="location.href='auth/google'">
+                        <img alt="" aria-hidden="true" src="google.svg" />
+                        Continue with Google
+                    </button>
+
+                    <button class="btn microsoft" type="button" onclick="location.href='auth/microsoft'">
+                        <img alt="" aria-hidden="true" src="microsoft.svg" />
+                        Continue with Microsoft
+                    </button>
+                </div>
+
+                <div class="divider">or</div>
+
+                <div class="hint">
+                    Tip: if you already have an active session with your provider, you may only need to choose the account you want to use.
+                </div>
+
+                <div class="footer">
+                    By continuing, you agree to sign in with your chosen provider in order to access token management and API usage information.
+                </div>
+            </aside>
+        </section>
+    </main>
 
     <script>
         (async () => {
