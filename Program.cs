@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -165,6 +166,13 @@ builder.Services.AddSingleton<IClientTokenStore, SqliteClientTokenStore>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "ReverseGeocode API",
+        Version = "v1",
+        Description = "Reverse geocoding API for Portugal based on official CAOP administrative boundaries. Use HTTP Basic authentication with e-mail as username and the generated GUID client token as password."
+    });
+
     // Mostra apenas endpoints /api/*
     options.DocInclusionPredicate((docName, apiDesc) =>
     {
@@ -172,12 +180,19 @@ builder.Services.AddSwaggerGen(options =>
         return path.StartsWith("api/", StringComparison.OrdinalIgnoreCase);
     });
 
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+    }
+
     // Botão Authorize (Basic)
     options.AddSecurityDefinition("Basic", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
         Scheme = "basic",
-        Description = "Username = email, Password = GUID token"
+        Description = "Username = account e-mail. Password = generated GUID client token."
     });
 
     options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
