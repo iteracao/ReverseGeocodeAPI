@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt">
 <head>
     <meta charset="utf-8" />
@@ -122,9 +122,9 @@
             font-weight: 600;
         }
 
-            .logoutBtn:hover {
-                background: rgba(255,255,255,.12);
-            }
+        .logoutBtn:hover {
+            background: rgba(255,255,255,.12);
+        }
 
         .card {
             background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(17,28,51,.92));
@@ -156,10 +156,10 @@
             min-width: 0;
         }
 
-            .panel h3 {
-                margin: 0 0 12px;
-                font-size: 16px;
-            }
+        .panel h3 {
+            margin: 0 0 12px;
+            font-size: 16px;
+        }
 
         .label {
             color: rgba(255,255,255,.55);
@@ -202,23 +202,23 @@
             transition: transform .08s ease, background .18s ease, opacity .18s ease;
         }
 
-            .btn:hover {
-                background: rgba(255,255,255,.12);
-            }
+        .btn:hover {
+            background: rgba(255,255,255,.12);
+        }
 
-            .btn:active {
-                transform: translateY(1px);
-            }
+        .btn:active {
+            transform: translateY(1px);
+        }
 
-            .btn.primary {
-                border-color: rgba(26,115,232,.40);
-                background: rgba(26,115,232,.18);
-            }
+        .btn.primary {
+            border-color: rgba(26,115,232,.40);
+            background: rgba(26,115,232,.18);
+        }
 
-            .btn[disabled] {
-                opacity: .45;
-                cursor: not-allowed;
-            }
+        .btn[disabled] {
+            opacity: .45;
+            cursor: not-allowed;
+        }
 
         .status {
             font-size: 12px;
@@ -239,7 +239,7 @@
             border-radius: 12px;
             border: 1px solid rgba(255,255,255,.10);
             background: rgba(0,0,0,.20);
-            max-height: 120px;
+            max-height: 160px;
             overflow: auto;
             font-size: 12px;
             line-height: 1.45;
@@ -251,29 +251,25 @@
             scrollbar-color: rgba(26,115,232,.7) rgba(255,255,255,.04);
         }
 
-        /* Scrollbar geral */
         ::-webkit-scrollbar {
             width: 10px;
             height: 10px;
         }
 
-        /* Track */
         ::-webkit-scrollbar-track {
             background: rgba(255,255,255,.03);
             border-radius: 10px;
         }
 
-        /* Thumb */
         ::-webkit-scrollbar-thumb {
             background: linear-gradient(180deg, rgba(26,115,232,.6), rgba(0,120,212,.6));
             border-radius: 10px;
             border: 2px solid rgba(0,0,0,.25);
         }
 
-            /* Hover */
-            ::-webkit-scrollbar-thumb:hover {
-                background: linear-gradient(180deg, rgba(26,115,232,.9), rgba(0,120,212,.9));
-            }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(26,115,232,.9), rgba(0,120,212,.9));
+        }
     </style>
 </head>
 
@@ -334,7 +330,7 @@
     <footer style="text-align:center;margin-top:30px;color:rgba(255,255,255,.45);font-size:12px;line-height:1.6">
         Reverse Geocode API — Portugal CAOP administrative boundaries<br />
         <a href="/legal.html" style="color:#cfe7ff;text-decoration:none;">Terms of Use &amp; Privacy Notice</a><br />
-        Contact: <a href="mailto:info@iteracao.pt" style="color:#cfe7ff;text-decoration:none;">ReverseGeoCodeApi@iteracao.pt</a>
+        Contact: <a href="mailto:info@iteracao.pt" style="color:#cfe7ff;text-decoration:none;">info@iteracao.pt</a>
     </footer>
 
     <script>
@@ -357,38 +353,42 @@
 
         function updateExamples(email, guid) {
             const base = window.location.origin;
+            const pair = `${email}:${guid}`;
+            const responseExample = `{
+  "dataset": "CAOP2025",
+  "datasetCreatedAtUtc": "2026-03-05T14:27:35.1782843Z",
+  "dicofre": "060334",
+  "freguesia": "União das freguesias de Coimbra (Sé Nova, Santa Cruz, Almedina e São Bartolomeu)",
+  "concelho": "Coimbra",
+  "distrito": "Coimbra",
+  "areaHa": 833.48,
+  "descricao": "Coimbra (Sé Nova, Santa Cruz, Almedina e São Bartolomeu)"
+}`;
 
             $("curl").textContent =
-                `Linux / macOS
+`Linux / macOS
 
-curl -X GET "${base}/api/v1/reverse-geocode?lat=40.123&lon=-8.456" \\
-      -H "Authorization: Basic $(printf '${email}:${guid}' | base64)"
+curl -X GET "${base}/api/v1/reverse-geocode?lat=40.2033&lon=-8.4103" \\
+  -H "Authorization: Basic $(printf '${pair}' | base64)"
 
 Windows (PowerShell)
 
-$pair = "${email}:${guid}"
+$pair = "${pair}"
 $base64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($pair))
 
-curl -X GET "${base}/api/v1/reverse-geocode?lat=40.123&lon=-8.456" \`
-      -H "Authorization: Basic $base64"`;
+Invoke-RestMethod \`
+  -Uri "${base}/api/v1/reverse-geocode?lat=40.2033&lon=-8.4103" \`
+  -Headers @{ Authorization = "Basic $base64" } \`
+  -Method GET`;
 
             $("respOk").textContent =
-                `HTTP/1.1 200 OK
+`HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
 
-{
-      "dataset": "CAOP2025",
-      "datasetCreatedAtUtc": "2026-03-05T14:27:35.1782843Z",
-      "dicofre": "060225",
-      "freguesia": "Cantanhede",
-      "concelho": "Cantanhede",
-      "distrito": "Coimbra",
-      "areaHa": 4176.01,
-      "descricao": "Cantanhede"
-}`;
+${responseExample}`;
 
             $("respErr").textContent =
-                `401 Unauthorized
+`401 Unauthorized
 Missing Authorization header.
 
 401 Unauthorized
@@ -397,13 +397,16 @@ Invalid Basic token. / Invalid GUID.
 403 Forbidden
 Invalid email or token.
 
-400 Bad Request
-Invalid latitude or longitude.
+404 Not Found
+No administrative area found for the given coordinates.
+
+429 Too Many Requests
+Rate limit exceeded. Please retry later.
 
 500 Internal Server Error
 {
-      "title": "Unexpected error",
-      "traceId": "00-..."
+  "title": "Unexpected error",
+  "traceId": "00-..."
 }`;
         }
 
@@ -413,16 +416,14 @@ Invalid latitude or longitude.
             $("copyGuid").disabled = !guid;
 
             if (guid) {
-                $("generate").disabled = true; // ✅ já existe → desativa
+                $("generate").disabled = true;
                 updateExamples(email || "<EMAIL>", guid);
                 setStatus("Token já existe ✓", "ok");
             } else {
                 $("generate").disabled = false;
-
                 $("curl").textContent = "Gera primeiro o token para ver os exemplos.";
                 $("respOk").textContent = "Gera primeiro o token para ver os exemplos.";
                 $("respErr").textContent = "Gera primeiro o token para ver os exemplos.";
-
                 setStatus("Autenticado ✓ (gera token quando quiseres)", "ok");
             }
         }
@@ -433,7 +434,6 @@ Invalid latitude or longitude.
             return await r.json();
         }
 
-        // ✅ read-only: não cria token
         async function getExistingToken() {
             const r = await fetch('/auth/client-token', { credentials: 'include' });
             if (!r.ok) {
@@ -463,7 +463,7 @@ Invalid latitude or longitude.
         $("logoutBtn").addEventListener("click", doLogout);
 
         $("generate").addEventListener("click", async () => {
-            $("generate").disabled = true; // ✅ enquanto gera
+            $("generate").disabled = true;
             setStatus("A gerar token…", "warn");
 
             try {
@@ -478,9 +478,8 @@ Invalid latitude or longitude.
                 if (guid) {
                     updateExamples(email || "<EMAIL>", guid);
                     setStatus("Token gerado ✓", "ok");
-                    $("generate").disabled = true; // ✅ após gerar, fica desativado
+                    $("generate").disabled = true;
                 } else {
-                    // não esperado, mas mantém seguro
                     setStatus("Resposta inválida", "bad");
                     $("generate").disabled = false;
                 }
@@ -492,7 +491,7 @@ Invalid latitude or longitude.
                 $("respOk").textContent = "";
                 $("respErr").textContent = "";
                 console.error(e);
-                $("generate").disabled = false; // ✅ só reativa se falhou
+                $("generate").disabled = false;
             }
         });
 
@@ -517,15 +516,12 @@ Invalid latitude or longitude.
             const me = await loadMe();
             if (!me) return;
 
-            // primeiro mostra email
             $("email").value = me.email || "";
             $("token").value = "";
             $("copyGuid").disabled = true;
 
-            // depois verifica se já existe token (sem criar)
             const existing = await getExistingToken();
 
-            // esperado: { email, clientToken, hasToken }
             if (existing && existing.hasToken && existing.clientToken) {
                 setTokenUi(existing.email || me.email, existing.clientToken);
             } else {
