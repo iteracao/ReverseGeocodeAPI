@@ -60,15 +60,19 @@
             margin: 0;
             font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
             color: var(--text);
-            background: radial-gradient(1200px 700px at 15% 15%, rgba(26,115,232,.18), transparent 55%), radial-gradient(900px 600px at 85% 30%, rgba(0,120,212,.18), transparent 50%), linear-gradient(180deg, var(--bg1), var(--bg2));
+            background: linear-gradient(180deg, var(--bg1), var(--bg2));
             padding: 36px 16px 48px;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .pageGlow {
             position: fixed;
             inset: 0;
             pointer-events: none;
-            background: radial-gradient(600px 180px at 50% 0%, rgba(96,165,250,.08), transparent 70%), radial-gradient(320px 320px at 85% 10%, rgba(56,189,248,.07), transparent 70%);
+            z-index: 0;
+            background: radial-gradient(1200px 700px at 15% 15%, rgba(26,115,232,.18), transparent 55%), radial-gradient(900px 600px at 85% 30%, rgba(0,120,212,.18), transparent 50%), radial-gradient(600px 180px at 50% 0%, rgba(96,165,250,.08), transparent 70%), radial-gradient(320px 320px at 85% 10%, rgba(56,189,248,.07), transparent 70%), linear-gradient(180deg, var(--bg1), var(--bg2));
         }
 
         .wrap {
