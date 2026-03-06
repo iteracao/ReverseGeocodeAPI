@@ -5,6 +5,7 @@
 ![Dataset](https://img.shields.io/badge/Data-CAOP%202025-green)
 ![Hosting](https://img.shields.io/badge/Hosting-Azure%20App%20Service-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
+![GitHub stars](https://img.shields.io/github/stars/iteracao/ReverseGeocodeAPI)
 
 High-performance **Reverse Geocoding API for Portugal** that converts
 geographic coordinates (latitude / longitude) into official Portuguese
