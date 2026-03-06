@@ -89,7 +89,8 @@ public sealed class BasicClientTokenMiddleware
                 ctx.Request.Method,
                 ctx.Request.Path);
 
-            ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            ctx.Response.Headers.WWWAuthenticate = "Basic realm=\"ReverseGeocode API\"";
             await ctx.Response.WriteAsync("Invalid email or token.");
             return;
         }

@@ -26,16 +26,21 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
         Cache = SqliteCacheMode.Private,
         DefaultTimeout = 5
     }.ToString();
-
+     
     private async Task EnsureInitializedAsync(SqliteConnection conn, CancellationToken ct)
     {
         if (_initialized) return;
 
+        bool shouldInit = false;
+
         lock (_initLock)
         {
-            if (_initialized) return;
-            _initialized = true;
+            if (!_initialized)
+                shouldInit = true;
         }
+
+        if (!shouldInit)
+            return;
 
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
@@ -57,6 +62,11 @@ ON ApiClientTokens(Email)
 WHERE RevokedAtUtc IS NULL;
 ";
         await cmd.ExecuteNonQueryAsync(ct);
+
+        lock (_initLock)
+        {
+            _initialized = true;
+        }
 
         _logger.LogInformation("SQLite client token store initialized at {Path}", _dbPath);
     }
