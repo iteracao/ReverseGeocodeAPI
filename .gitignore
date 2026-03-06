@@ -363,8 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 /App_Data
 /appsettings.Development.json
-/ReverseGeocodeApi.csproj
-/ReverseGeocodeApi.http
-/ReverseGeocodeApi.sln
 /App_Data/clienttokens.db
 /appsettings.Development.json
