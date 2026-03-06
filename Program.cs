@@ -8,12 +8,27 @@ using ReverseGeocodeApi.Security;
 using System.Diagnostics;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Ensure App_Data exists (IIS friendly)
 Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "App_Data"));
 Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "Logs"));
+
+// Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(
+        path: Path.Combine(builder.Environment.ContentRootPath, "Logs", "api-.log"),
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        shared: true)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 builder.Services.Configure<ReverseGeocodeApi.Models.CaopOptions>(builder.Configuration.GetSection("Caop"));
@@ -124,6 +139,8 @@ builder.Services.AddRateLimiter(options =>
         if (!context.HttpContext.Response.HasStarted)
         {
             context.HttpContext.Response.ContentType = "application/problem+json";
+            context.HttpContext.Response.Headers["Retry-After"] = "60";
+
             await context.HttpContext.Response.WriteAsJsonAsync(new
             {
                 title = "Too many requests",
@@ -211,8 +228,6 @@ app.Use(async (ctx, next) =>
     ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
 
-    // CSP (leve)  evita partir login/tokens (inline script/style)
-    // Em dev podes optar por não aplicar ao Swagger, mas não é obrigatório.
     if ((!ctx.Request.Path.StartsWithSegments("/swagger")) && (!ctx.Request.Path.StartsWithSegments("/api")))
     {
         ctx.Response.Headers["Content-Security-Policy"] =
@@ -312,7 +327,6 @@ app.MapGet("/error", (HttpContext ctx) =>
 {
     var traceId = Activity.Current?.Id ?? ctx.TraceIdentifier;
 
-    // Não expor detalhes em produção
     return Results.Problem(
         title: "Unexpected error",
         statusCode: StatusCodes.Status500InternalServerError,
@@ -387,7 +401,6 @@ app.MapPost("/logout", async (HttpContext http) =>
     await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     await http.SignOutAsync("External");
 
-    // hard delete cookie
     http.Response.Cookies.Delete(".AspNetCore.Cookies");
     http.Response.Cookies.Delete(".ReverseGeocode.External");
 
@@ -432,6 +445,16 @@ app.MapPost("/auth/client-token", async (IUserContext userCtx, IClientTokenStore
     });
 }).RequireAuthorization();
 
-
-
-app.Run();
+try
+{
+    Log.Information("Starting ReverseGeocodeApi");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
