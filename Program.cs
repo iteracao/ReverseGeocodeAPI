@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using ReverseGeocodeApi.Security;
 using System.Diagnostics;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,6 +106,42 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
+            .CreateLogger("RateLimiting");
+
+        logger.LogWarning(
+            "Rate limit exceeded for {Method} {Path} from {RemoteIp}",
+            context.HttpContext.Request.Method,
+            context.HttpContext.Request.Path,
+            context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+
+        if (!context.HttpContext.Response.HasStarted)
+        {
+            context.HttpContext.Response.ContentType = "application/problem+json";
+            await context.HttpContext.Response.WriteAsJsonAsync(new
+            {
+                title = "Too many requests",
+                status = StatusCodes.Status429TooManyRequests,
+                detail = "Rate limit exceeded. Please retry later."
+            }, cancellationToken);
+        }
+    };
+
+    options.AddFixedWindowLimiter("api", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 100;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueLimit = 0;
+        limiterOptions.AutoReplenishment = true;
+    });
+});
+
 builder.Services
     .AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "App_Data", "Keys")))
@@ -123,7 +161,7 @@ builder.Services.AddSwaggerGen(options =>
         return path.StartsWith("api/", StringComparison.OrdinalIgnoreCase);
     });
 
-    // Botão Authorize (Basic)
+    // BotÃ£o Authorize (Basic)
     options.AddSecurityDefinition("Basic", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
@@ -173,8 +211,8 @@ app.Use(async (ctx, next) =>
     ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
     ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
 
-    // CSP (leve) — evita partir login/tokens (inline script/style)
-    // Em dev podes optar por não aplicar ao Swagger, mas não é obrigatório.
+    // CSP (leve) Â— evita partir login/tokens (inline script/style)
+    // Em dev podes optar por nÃ£o aplicar ao Swagger, mas nÃ£o Ã© obrigatÃ³rio.
     if ((!ctx.Request.Path.StartsWithSegments("/swagger")) && (!ctx.Request.Path.StartsWithSegments("/api")))
     {
         ctx.Response.Headers["Content-Security-Policy"] =
@@ -193,6 +231,42 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.Use(async (ctx, next) =>
+{
+    var logger = ctx.RequestServices.GetRequiredService<ILoggerFactory>()
+        .CreateLogger("RequestLogging");
+
+    var sw = Stopwatch.StartNew();
+
+    try
+    {
+        await next();
+        sw.Stop();
+
+        logger.LogInformation(
+            "HTTP {Method} {Path} responded {StatusCode} in {ElapsedMs:0.0000} ms",
+            ctx.Request.Method,
+            ctx.Request.Path,
+            ctx.Response.StatusCode,
+            sw.Elapsed.TotalMilliseconds);
+    }
+    catch (Exception ex)
+    {
+        sw.Stop();
+
+        logger.LogError(
+            ex,
+            "HTTP {Method} {Path} failed after {ElapsedMs:0.0000} ms",
+            ctx.Request.Method,
+            ctx.Request.Path,
+            sw.Elapsed.TotalMilliseconds);
+
+        throw;
+    }
+});
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 
@@ -231,14 +305,14 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("api");
 
-// endpoint que devolve JSON em produção (e também serve em dev se quiseres)
+// endpoint que devolve JSON em produÃ§Ã£o (e tambÃ©m serve em dev se quiseres)
 app.MapGet("/error", (HttpContext ctx) =>
 {
     var traceId = Activity.Current?.Id ?? ctx.TraceIdentifier;
 
-    // Não expor detalhes em produção
+    // NÃ£o expor detalhes em produÃ§Ã£o
     return Results.Problem(
         title: "Unexpected error",
         statusCode: StatusCodes.Status500InternalServerError,

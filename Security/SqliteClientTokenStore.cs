@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 
 namespace ReverseGeocodeApi.Security;
 
@@ -10,11 +10,13 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
 {
     private readonly string _dbPath;
     private readonly object _initLock = new();
+    private readonly ILogger<SqliteClientTokenStore> _logger;
     private volatile bool _initialized;
 
-    public SqliteClientTokenStore(IWebHostEnvironment env)
+    public SqliteClientTokenStore(IWebHostEnvironment env, ILogger<SqliteClientTokenStore> logger)
     {
         _dbPath = Path.Combine(env.ContentRootPath, "App_Data", "clienttokens.db");
+        _logger = logger;
     }
 
     private string ConnectionString => new SqliteConnectionStringBuilder
@@ -22,21 +24,19 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
         DataSource = _dbPath,
         Mode = SqliteOpenMode.ReadWriteCreate,
         Cache = SqliteCacheMode.Private,
-        DefaultTimeout = 5 // segundos
+        DefaultTimeout = 5
     }.ToString();
 
     private async Task EnsureInitializedAsync(SqliteConnection conn, CancellationToken ct)
     {
         if (_initialized) return;
 
-        // Double-check lock
         lock (_initLock)
         {
             if (_initialized) return;
-            _initialized = true; // mark early to prevent duplicates
+            _initialized = true;
         }
 
-        // conn já vem aberta
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
 PRAGMA journal_mode=WAL;
@@ -57,6 +57,8 @@ ON ApiClientTokens(Email)
 WHERE RevokedAtUtc IS NULL;
 ";
         await cmd.ExecuteNonQueryAsync(ct);
+
+        _logger.LogInformation("SQLite client token store initialized at {Path}", _dbPath);
     }
 
     public async Task<Guid> IssueAsync(string email, CancellationToken ct = default)
@@ -71,7 +73,6 @@ WHERE RevokedAtUtc IS NULL;
 
         await EnsureInitializedAsync(conn, ct);
 
-        // 1) verificar se já existe token ativo
         await using (var getCmd = conn.CreateCommand())
         {
             getCmd.CommandText = @"
@@ -84,10 +85,12 @@ LIMIT 1;";
 
             var existing = (string?)await getCmd.ExecuteScalarAsync(ct);
             if (!string.IsNullOrWhiteSpace(existing) && Guid.TryParse(existing, out var g))
+            {
+                _logger.LogInformation("Reusing existing active client token for {Email}", email);
                 return g;
+            }
         }
 
-        // 2) criar novo
         var token = Guid.NewGuid();
         var now = DateTime.UtcNow.ToString("O");
 
@@ -103,11 +106,14 @@ VALUES ($token, $email, $created, $lastSeen, NULL);";
             insCmd.Parameters.AddWithValue("$lastSeen", now);
 
             await insCmd.ExecuteNonQueryAsync(ct);
+
+            _logger.LogInformation("Issued new client token for {Email}", email);
             return token;
         }
         catch (SqliteException ex) when (ex.SqliteErrorCode == 19)
         {
-            // corrida concorrente → ler token existente
+            _logger.LogWarning(ex, "Concurrent token issuance detected for {Email}; re-reading existing token", email);
+
             await using var retryCmd = conn.CreateCommand();
             retryCmd.CommandText = @"
 SELECT Token
@@ -183,7 +189,7 @@ WHERE Email = $email AND Token = $token AND RevokedAtUtc IS NULL;";
         await using var conn = new SqliteConnection(ConnectionString);
         await conn.OpenAsync(ct);
 
-        await EnsureInitializedAsync(conn, ct); 
+        await EnsureInitializedAsync(conn, ct);
 
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
@@ -194,7 +200,9 @@ WHERE Email = $email AND Token = $token AND RevokedAtUtc IS NULL;";
         cmd.Parameters.AddWithValue("$email", email);
         cmd.Parameters.AddWithValue("$token", token.ToString());
 
-        await cmd.ExecuteNonQueryAsync(ct);
+        var affected = await cmd.ExecuteNonQueryAsync(ct);
+        if (affected > 0)
+            _logger.LogInformation("Revoked client token for {Email}", email);
     }
 
     public async Task<Guid?> TryGetAsync(string email, CancellationToken ct = default)
