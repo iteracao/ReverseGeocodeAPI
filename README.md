@@ -1,40 +1,63 @@
 # Reverse Geocode API (Portugal)
 
-Reverse Geocode API is a lightweight ASP.NET Core Web API that converts
+![.NET](https://img.shields.io/badge/.NET-8.0-purple)
+![API](https://img.shields.io/badge/API-Reverse%20Geocoding-blue)
+![Dataset](https://img.shields.io/badge/Data-CAOP%202025-green)
+![Hosting](https://img.shields.io/badge/Hosting-Azure%20App%20Service-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+High-performance **Reverse Geocoding API for Portugal** that converts
 geographic coordinates (latitude / longitude) into official Portuguese
-administrative divisions using the CAOP dataset.
+administrative divisions using the **CAOP dataset**.
 
-The API resolves coordinates into: - Distrito - Concelho - Freguesia -
-DICOFRE (INE administrative code)
+The API resolves coordinates into:
 
-The service is designed to be simple, fast and production-ready.
+-   Distrito
+-   Concelho
+-   Freguesia
+-   DICOFRE (INE administrative code)
+
+Designed to be **simple, fast and production-ready**.
 
 ------------------------------------------------------------------------
 
-## Key Features
+# Live API
+
+https://reversegeocodeapi-hsadd5g3bjabbmft.westeurope-01.azurewebsites.net/
+
+Example request:
+
+GET /api/v1/reverse-geocode?lat=40.3479&lon=-8.5941
+
+------------------------------------------------------------------------
+
+# Key Features
 
 -   Reverse geocoding using official **CAOP administrative boundaries**
 -   Built with **ASP.NET Core (.NET 8)**
--   OAuth authentication (Google / Microsoft)
--   Client GUID token per user
+-   OAuth authentication (**Google / Microsoft**)
+-   Client **GUID token per user**
 -   API authentication using **HTTP Basic (email:token)**
 -   Developer portal for token management
--   SQLite token storage
--   Fast in-memory dataset loading
--   Logging and rate limiting
+-   **SQLite token storage**
+-   Fast **in-memory dataset loading**
+-   Structured logging with **Serilog**
+-   Built-in **rate limiting**
 -   Health endpoint for monitoring
--   Suitable for **IIS or Kestrel deployment**
+-   Suitable for **IIS, Kestrel or Azure App Service**
 
 ------------------------------------------------------------------------
 
-## API Endpoint
+# API Endpoint
 
 GET /api/v1/reverse-geocode
 
 ### Parameters
 
-lat -- Latitude\
-lon -- Longitude
+  Parameter   Description
+  ----------- -------------
+  lat         Latitude
+  lon         Longitude
 
 ### Example
 
@@ -42,100 +65,147 @@ GET /api/v1/reverse-geocode?lat=40.3479&lon=-8.5941
 
 ------------------------------------------------------------------------
 
-## Example Response
+# Example Response
 
-{ "dataset": "CAOP2025", "datasetCreatedAtUtc": "2026-03-05T14:27:35Z",
-"dicofre": "060334", "freguesia": "União das freguesias de Coimbra (Sé
-Nova, Santa Cruz, Almedina e São Bartolomeu)", "concelho": "Coimbra",
-"distrito": "Coimbra" }
+``` json
+{
+  "dataset": "CAOP2025",
+  "datasetCreatedAtUtc": "2026-03-05T14:27:35Z",
+  "dicofre": "060334",
+  "freguesia": "União das freguesias de Coimbra (Sé Nova, Santa Cruz, Almedina e São Bartolomeu)",
+  "concelho": "Coimbra",
+  "distrito": "Coimbra"
+}
+```
 
 ------------------------------------------------------------------------
 
-## Authentication Model
+# Authentication Model
 
 Two authentication layers exist.
 
-User authentication via Google or Microsoft OAuth.
+### 1. User authentication
 
-API authentication uses: Authorization: Basic base64(email:token)
+Users authenticate using:
+
+-   Google OAuth
+-   Microsoft OAuth
+
+### 2. API authentication
+
+API calls require:
+
+Authorization: Basic base64(email:token)
+
+Where:
 
 email = OAuth authenticated email\
 token = GUID client token
 
 ------------------------------------------------------------------------
 
-## Client Tokens
+# Client Tokens
 
-Tokens stored in SQLite table ApiClientTokens.
+Tokens are stored in SQLite table:
 
-Fields: Token\
-Email\
-CreatedAtUtc\
-LastSeenAtUtc\
-RevokedAtUtc
+ApiClientTokens
+
+Fields:
+
+-   Token
+-   Email
+-   CreatedAtUtc
+-   LastSeenAtUtc
+-   RevokedAtUtc
 
 Only **one active token per user** is allowed.
 
 ------------------------------------------------------------------------
 
-## Dataset
+# Dataset
 
-Source: CAOP (Carta Administrativa Oficial de Portugal)
+Source: **CAOP --- Carta Administrativa Oficial de Portugal**
 
-Location: Data/CAOP2025/
+Location:
 
-Dataset loads into memory at runtime for fast spatial lookup.
+Data/CAOP2025/
+
+The dataset is loaded **in memory at runtime** for fast spatial lookup
+using **NetTopologySuite**.
 
 ------------------------------------------------------------------------
 
-## Developer Portal
+# Developer Portal
 
-Static pages:
+Static pages available for users:
 
 wwwroot/login.html\
 wwwroot/tokens.html\
 wwwroot/legal.html
 
-------------------------------------------------------------------------
-
-## Rate Limiting
-
-100 requests per minute.
+These pages allow users to authenticate and obtain their API token.
 
 ------------------------------------------------------------------------
 
-## Logging
+# Rate Limiting
 
-Structured logging using Serilog.
+Default rate limit:
 
-Logs stored in: Logs/
+100 requests per minute
 
 ------------------------------------------------------------------------
 
-## Health Endpoint
+# Logging
+
+Structured logging using **Serilog**.
+
+Logs stored in:
+
+Logs/
+
+------------------------------------------------------------------------
+
+# Health Endpoint
 
 GET /health
 
-Example: { "status": "ok", "dataset": "CAOP2025", "records": 3049 }
+Example response:
+
+``` json
+{
+  "status": "ok",
+  "dataset": "CAOP2025",
+  "records": 3049
+}
+```
 
 ------------------------------------------------------------------------
 
-## Deployment
+# Deployment
 
-Supports IIS or Kestrel.
+Supports deployment via:
 
-Important folders: App_Data/ Logs/
+-   IIS
+-   Kestrel
+-   Azure App Service
 
-SQLite database: App_Data/clienttokens.db
+Important folders:
+
+App_Data/\
+Logs/
+
+SQLite database:
+
+App_Data/clienttokens.db
 
 ------------------------------------------------------------------------
 
-## Contact
+# Contact
 
 info@iteracao.pt
 
 ------------------------------------------------------------------------
 
-## License
+# License
 
 MIT License
