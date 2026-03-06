@@ -1,55 +1,90 @@
 # AI_CONTEXT.md
 
-This file provides context for AI tools interacting with this
-repository.
+## Project Overview
 
-## Overview
+Reverse Geocode API converts geographic coordinates into Portuguese
+administrative divisions using the CAOP dataset.
 
-Reverse Geocode API is a lightweight ASP.NET Core Web API that resolves
-coordinates into Portuguese administrative divisions using CAOP data.
-
-Outputs: - Distrito - Concelho - Freguesia - DICOFRE
+Returned data: Distrito, Concelho, Freguesia, DICOFRE
 
 ## Technology Stack
 
--   .NET 8
--   ASP.NET Core
--   SQLite
--   OAuth authentication (Google / Microsoft)
--   HTTP Basic authentication
--   CAOP dataset
+.NET 8\
+ASP.NET Core Web API\
+SQLite\
+OAuth authentication\
+HTTP Basic API authentication\
+CAOP dataset\
+Serilog logging
 
-## Authentication Model
+## Authentication Architecture
 
-Two layers exist:
+### OAuth Identity
 
-User authentication: OAuth login via Google or Microsoft.
+Users authenticate using Google or Microsoft. The service receives the
+user's email address.
 
-API authentication: Each user generates a GUID token.
+### API Token
 
-Requests must include:
+After authentication the user receives a GUID client token.
 
-Authorization: Basic base64(email:token)
+API requests must include: Authorization: Basic base64(email:token)
 
 ## Token Storage
 
 SQLite table: ApiClientTokens
 
-Fields: - Token (GUID) - Email - CreatedAtUtc - LastSeenAtUtc -
+Columns: Token\
+Email\
+CreatedAtUtc\
+LastSeenAtUtc\
 RevokedAtUtc
+
+Unique index ensures one active token per user.
+
+## Token Lifecycle
+
+Active → Revoked
+
+Revocation sets RevokedAtUtc.
+
+Revoked tokens remain stored for auditing.
 
 ## Dataset
 
-Uses CAOP administrative boundaries for Portugal.
+Source: CAOP administrative boundaries.
 
-Dataset loads in memory at startup for fast spatial lookup.
+Location: Data/CAOP2025
+
+Dataset loads into memory for fast polygon lookup.
+
+## API Endpoints
+
+GET /api/v1/reverse-geocode\
+GET /api/v1/datasets\
+GET /health
 
 ## Developer Portal
 
-Located in wwwroot/
+Located in wwwroot:
 
-Pages: - login.html - tokens.html
+login.html\
+tokens.html\
+legal.html
 
-Functions: - OAuth login - token generation - API usage examples
+## Logging
 
-The portal intentionally uses vanilla JavaScript to remain lightweight.
+Serilog structured logs.
+
+Directory: Logs/
+
+## Operational Folders
+
+App_Data/ -- SQLite token database\
+Logs/ -- application logs\
+Data/ -- CAOP dataset\
+wwwroot/ -- portal pages
+
+## Monitoring
+
+Health endpoint: GET /health
