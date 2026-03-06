@@ -5,7 +5,7 @@ repository.
 
 ## Overview
 
-ReverseGeocode API is a lightweight ASP.NET Core Web API that resolves
+Reverse Geocode API is a lightweight ASP.NET Core Web API that resolves
 coordinates into Portuguese administrative divisions using CAOP data.
 
 Outputs: - Distrito - Concelho - Freguesia - DICOFRE

@@ -1,4 +1,4 @@
-# ReverseGeocode API (Portugal)
+# Reverse Geocode API (Portugal)
 
 Lightweight .NET 8 ASP.NET Core Web API that converts geographic
 coordinates (latitude/longitude) into official Portuguese administrative
