@@ -11,6 +11,8 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
 
+const string ApiRateLimitKeyItemName = "ApiRateLimitKey";
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Ensure App_Data exists (IIS friendly)
@@ -125,10 +127,15 @@ builder.Services.AddRateLimiter(options =>
         var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
             .CreateLogger("RateLimiting");
 
+        var rateLimitKey = context.HttpContext.Items.TryGetValue(ApiRateLimitKeyItemName, out var keyObj)
+            ? keyObj?.ToString()
+            : null;
+
         logger.LogWarning(
-            "Rate limit exceeded for {Method} {Path} from {RemoteIp}",
+            "Rate limit exceeded for {Method} {Path} by {RateLimitKey} from {RemoteIp}",
             context.HttpContext.Request.Method,
             context.HttpContext.Request.Path,
+            rateLimitKey ?? "unknown",
             context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
 
         if (!context.HttpContext.Response.HasStarted)
@@ -140,17 +147,31 @@ builder.Services.AddRateLimiter(options =>
             {
                 title = "Too many requests",
                 status = StatusCodes.Status429TooManyRequests,
-                detail = "Rate limit exceeded. Please retry later."
+                detail = "Per-client rate limit exceeded. Please retry later."
             }, cancellationToken);
         }
     };
 
-    options.AddFixedWindowLimiter("api", limiterOptions =>
+    options.AddPolicy("api-per-client", httpContext =>
     {
-        limiterOptions.PermitLimit = 100;
-        limiterOptions.Window = TimeSpan.FromMinutes(1);
-        limiterOptions.QueueLimit = 0;
-        limiterOptions.AutoReplenishment = true;
+        var rateLimitKey = httpContext.Items.TryGetValue(ApiRateLimitKeyItemName, out var keyObj)
+            ? keyObj?.ToString()
+            : null;
+
+        if (string.IsNullOrWhiteSpace(rateLimitKey))
+        {
+            rateLimitKey = $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+        }
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: rateLimitKey,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
     });
 });
 
@@ -294,13 +315,12 @@ app.Use(async (ctx, next) =>
     }
 });
 
-app.UseRateLimiter();
-
 app.UseAuthentication();
 
 app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/api"), apiBranch =>
 {
     apiBranch.UseMiddleware<ReverseGeocodeApi.Security.BasicClientTokenMiddleware>();
+    apiBranch.UseRateLimiter();
 });
 
 app.UseAuthorization();
@@ -333,7 +353,7 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
-app.MapControllers().RequireRateLimiting("api");
+app.MapControllers().RequireRateLimiting("api-per-client");
 
 app.MapGet("/health", (ReverseGeocodeApi.Services.CaopDatasetService datasetService) =>
 {
@@ -351,7 +371,7 @@ app.MapGet("/health", (ReverseGeocodeApi.Services.CaopDatasetService datasetServ
 });
 
 // endpoint que devolve JSON em produção (e também serve em dev se quiseres)
-app.MapGet("/error", (HttpContext ctx) =>
+app.MapMethods("/error", new[] { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS" }, (HttpContext ctx) =>
 {
     var traceId = Activity.Current?.Id ?? ctx.TraceIdentifier;
 
@@ -429,7 +449,6 @@ app.MapPost("/logout", async (HttpContext http) =>
     await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     await http.SignOutAsync("External");
 
-    http.Response.Cookies.Delete(".AspNetCore.Cookies");
     http.Response.Cookies.Delete(".ReverseGeocode.External");
 
     return Results.NoContent();

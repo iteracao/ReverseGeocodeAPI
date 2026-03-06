@@ -9,8 +9,8 @@ namespace ReverseGeocodeApi.Security;
 public sealed class SqliteClientTokenStore : IClientTokenStore
 {
     private readonly string _dbPath;
-    private readonly object _initLock = new();
     private readonly ILogger<SqliteClientTokenStore> _logger;
+    private readonly SemaphoreSlim _initSemaphore = new(1, 1);
     private volatile bool _initialized;
 
     public SqliteClientTokenStore(IWebHostEnvironment env, ILogger<SqliteClientTokenStore> logger)
@@ -26,26 +26,24 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
         Cache = SqliteCacheMode.Private,
         DefaultTimeout = 5
     }.ToString();
-     
+
     private async Task EnsureInitializedAsync(SqliteConnection conn, CancellationToken ct)
     {
-        if (_initialized) return;
-
-        bool shouldInit = false;
-
-        lock (_initLock)
-        {
-            if (!_initialized)
-                shouldInit = true;
-        }
-
-        if (!shouldInit)
+        if (_initialized)
             return;
 
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = @"
+        await _initSemaphore.WaitAsync(ct);
+
+        try
+        {
+            if (_initialized)
+                return;
+
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = @"
 PRAGMA journal_mode=WAL;
 PRAGMA synchronous=NORMAL;
+
 CREATE TABLE IF NOT EXISTS ApiClientTokens (
   Token TEXT NOT NULL PRIMARY KEY,
   Email TEXT NOT NULL,
@@ -61,14 +59,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS UX_ApiClientTokens_Email_Active
 ON ApiClientTokens(Email)
 WHERE RevokedAtUtc IS NULL;
 ";
-        await cmd.ExecuteNonQueryAsync(ct);
+            await cmd.ExecuteNonQueryAsync(ct);
 
-        lock (_initLock)
-        {
             _initialized = true;
-        }
 
-        _logger.LogInformation("SQLite client token store initialized at {Path}", _dbPath);
+            _logger.LogInformation("SQLite client token store initialized at {Path}", _dbPath);
+        }
+        finally
+        {
+            _initSemaphore.Release();
+        }
     }
 
     public async Task<Guid> IssueAsync(string email, CancellationToken ct = default)
