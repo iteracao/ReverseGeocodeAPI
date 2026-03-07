@@ -396,25 +396,61 @@ ${responseExample}`;
 
             $("respErr").textContent =
 `401 Unauthorized
-Missing Authorization header.
-
-401 Unauthorized
-Invalid Basic token. / Invalid GUID.
-
-401 Unauthorized
-Invalid email or token.
+Content-Type: application/problem+json
+{
+  "title": "Unauthorized",
+  "status": 401,
+  "detail": "Authorization header is missing or not using Basic authentication.",
+  "category": "platform",
+  "code": "auth_missing_header",
+  "traceId": "00-..."
+}
 
 404 Not Found
-No administrative area found for the given coordinates.
+Content-Type: application/problem+json
+{
+  "title": "No match found",
+  "status": 404,
+  "detail": "No Portuguese administrative area was found for the supplied coordinates.",
+  "category": "api",
+  "code": "outside_portugal",
+  "traceId": "00-..."
+}
 
 429 Too Many Requests
-Rate limit exceeded. Please retry later.
-
-500 Internal Server Error
+Content-Type: application/problem+json
 {
-  "title": "Unexpected error",
+  "title": "Too many requests",
+  "status": 429,
+  "detail": "Per-client rate limit exceeded. Please retry later.",
+  "category": "platform",
+  "code": "rate_limit_client_exceeded",
   "traceId": "00-..."
 }`;
+        }
+
+        async function parseProblem(response) {
+            const fallback = `HTTP ${response.status}`;
+            const contentType = (response.headers.get("content-type") || "").toLowerCase();
+
+            if (contentType.includes("application/problem+json") || contentType.includes("application/json")) {
+                try {
+                    const p = await response.json();
+                    const detail = (p?.detail || p?.title || fallback).toString();
+                    const code = (p?.code || "").toString();
+                    const category = (p?.category || "").toString();
+                    return { detail, code, category };
+                } catch {
+                    return { detail: fallback, code: "", category: "" };
+                }
+            }
+
+            try {
+                const t = (await response.text() || "").trim();
+                return { detail: t || fallback, code: "", category: "" };
+            } catch {
+                return { detail: fallback, code: "", category: "" };
+            }
         }
 
         function setTokenUi(email, guid) {
@@ -453,8 +489,9 @@ Rate limit exceeded. Please retry later.
         async function loadCsrfToken() {
             const r = await fetch('/auth/antiforgery-token', { credentials: 'include' });
             if (!r.ok) {
-                const t = await r.text().catch(() => "");
-                throw new Error(t || ("HTTP " + r.status));
+                const problem = await parseProblem(r);
+                const suffix = problem.code ? ` (${problem.code})` : "";
+                throw new Error(problem.detail + suffix);
             }
 
             const data = await r.json();
@@ -479,8 +516,9 @@ Rate limit exceeded. Please retry later.
                 }
             });
             if (!r.ok) {
-                const t = await r.text().catch(() => "");
-                throw new Error(t || ("HTTP " + r.status));
+                const problem = await parseProblem(r);
+                const suffix = problem.code ? ` (${problem.code})` : "";
+                throw new Error(problem.detail + suffix);
             }
             return await r.json();
         }
@@ -527,7 +565,7 @@ Rate limit exceeded. Please retry later.
                     $("generate").disabled = false;
                 }
             } catch (e) {
-                setStatus("Error generating token", "bad");
+                setStatus(`Error generating token: ${e?.message || "unknown"}`, "bad");
                 $("token").value = "";
                 $("copyGuid").disabled = true;
                 $("curl").textContent = "Unable to generate token.";

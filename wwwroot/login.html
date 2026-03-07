@@ -283,6 +283,18 @@
             line-height: 1.45;
         }
 
+        .authStatus {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(245,158,11,.35);
+            background: rgba(245,158,11,.10);
+            color: #fde68a;
+            font-size: 12px;
+            line-height: 1.45;
+            display: none;
+        }
+
         .footer {
             margin-top: 14px;
             text-align: center;
@@ -570,6 +582,7 @@
                 <div class="hint">
                     Tip: if you already have an active session with your provider, you may only need to choose the account you want to use.
                 </div>
+                <div id="authStatus" class="authStatus" role="status" aria-live="polite"></div>
 
                 <div class="footer">
                     By continuing, you agree to sign in with your chosen provider in order to access token management and API usage information.
@@ -583,13 +596,49 @@
     </main>
 
     <script>
+        function setAuthStatus(message) {
+            const el = document.getElementById('authStatus');
+            if (!el) return;
+            if (!message) {
+                el.style.display = 'none';
+                el.textContent = '';
+                return;
+            }
+
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+
+        async function readProblem(response) {
+            const ct = (response.headers.get('content-type') || '').toLowerCase();
+            if (ct.includes('application/problem+json') || ct.includes('application/json')) {
+                try {
+                    return await response.json();
+                } catch {
+                    return null;
+                }
+            }
+
+            return null;
+        }
+
         (async () => {
             try {
                 const r = await fetch('/auth/me', { credentials: 'include' });
                 if (r.ok) {
                     location.replace('/tokens.html');
+                    return;
                 }
-            } catch { }
+
+                // Unauthenticated is expected on login page; keep silent.
+                if (r.status === 401) return;
+
+                const problem = await readProblem(r);
+                const detail = (problem && (problem.detail || problem.title)) ? (problem.detail || problem.title) : `HTTP ${r.status}`;
+                setAuthStatus(`Unable to verify current session: ${detail}`);
+            } catch {
+                setAuthStatus("Unable to verify current session due to a network error.");
+            }
         })();
     </script>
 </body>

@@ -11,10 +11,11 @@ using ReverseGeocodeApi.Services;
 /// <remarks>
 /// All endpoints under <c>/api/v1</c> require HTTP Basic authentication.
 /// Use the account e-mail address as the Basic username and the generated GUID client token as the Basic password.
+/// Error responses use RFC 7807 Problem Details JSON with <c>category</c> and <c>code</c> extensions.
 /// </remarks>
 [ApiController]
 [Route("api/v1")]
-[Produces("application/json")]
+[Produces("application/json", "application/problem+json")]
 [Tags("Reverse Geocode")]
 public sealed class ReverseGeocodeController : ControllerBase
 {
@@ -39,16 +40,16 @@ public sealed class ReverseGeocodeController : ControllerBase
     /// <param name="lon">Longitude in decimal degrees. Valid range: -180 to 180.</param>
     /// <returns>The matched administrative division for the supplied coordinates.</returns>
     /// <response code="200">Coordinates were resolved successfully.</response>
-    /// <response code="400">The latitude or longitude values are invalid.</response>
-    /// <response code="401">The request is missing valid HTTP Basic credentials.</response>
-    /// <response code="404">No Portuguese administrative area was found for the supplied coordinates.</response>
-    /// <response code="429">The API rate limit was exceeded.</response>
+    /// <response code="400">Invalid input. Returns Problem Details with category <c>api</c> and code <c>missing_lat</c>, <c>missing_lon</c>, <c>invalid_lat_range</c> or <c>invalid_lon_range</c>.</response>
+    /// <response code="401">Missing or invalid API credentials. Returns Problem Details with category <c>platform</c>.</response>
+    /// <response code="404">No Portuguese administrative area matched. Returns Problem Details with category <c>api</c> and code <c>outside_portugal</c>.</response>
+    /// <response code="429">API rate limit exceeded. Returns Problem Details with category <c>platform</c>.</response>
     [HttpGet("reverse-geocode")]
     [ProducesResponseType(typeof(ReverseGeocodeResult), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
     public IActionResult ReverseGeocode([FromQuery] double? lat, [FromQuery] double? lon)
     {
         var email = User?.Identity?.Name ?? HttpContext.Items["ClientEmail"]?.ToString() ?? "anonymous";
@@ -137,12 +138,12 @@ public sealed class ReverseGeocodeController : ControllerBase
     /// </summary>
     /// <returns>Dataset metadata used by the API.</returns>
     /// <response code="200">Dataset information was returned successfully.</response>
-    /// <response code="401">The request is missing valid HTTP Basic credentials.</response>
-    /// <response code="429">The API rate limit was exceeded.</response>
+    /// <response code="401">Missing or invalid API credentials. Returns Problem Details with category <c>platform</c>.</response>
+    /// <response code="429">API rate limit exceeded. Returns Problem Details with category <c>platform</c>.</response>
     [HttpGet("datasets")]
     [ProducesResponseType(typeof(DatasetListResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
     public IActionResult ListDatasets()
     {
         var email = User?.Identity?.Name ?? HttpContext.Items["ClientEmail"]?.ToString() ?? "anonymous";

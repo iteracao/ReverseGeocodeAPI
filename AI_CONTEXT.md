@@ -64,6 +64,10 @@ GET /api/v1/reverse-geocode\
 GET /api/v1/datasets\
 GET /health
 
+Diagnostic endpoint (temporary ops use):
+
+GET /api/v1/ops/forwarded-check
+
 ## Developer Portal
 
 Located in wwwroot:
@@ -105,14 +109,35 @@ Health endpoint: GET /health
 - Protected POST endpoints:
   - `POST /auth/client-token`
   - `POST /logout`
-- API auth failures return `401`
+- API auth failures return `401` with Problem Details JSON
+
+## Error Contract
+
+Errors return RFC 7807 Problem Details JSON.
+
+Content type:
+
+`application/problem+json`
+
+Base fields:
+
+`type`, `title`, `status`, `detail`, `instance`
+
+Extensions:
+
+`traceId`, `category`, `code`
+
+Category values:
+
+- `api`: input/domain validation and no-match conditions
+- `platform`: authentication, rate limiting, antiforgery, and pipeline failures
 
 ## Reverse Geocode Validation Rules
 
 - `lat` and `lon` are required query parameters
-- Missing `lat`/`lon` -> `400`
-- Out-of-range `lat`/`lon` -> `400`
-- Valid input with no polygon match -> `404`
+- Missing `lat`/`lon` -> `400` (`api`: `missing_lat` / `missing_lon`)
+- Out-of-range `lat`/`lon` -> `400` (`api`: `invalid_lat_range` / `invalid_lon_range`)
+- Valid input with no polygon match -> `404` (`api`: `outside_portugal`)
 
 ## Performance Notes
 

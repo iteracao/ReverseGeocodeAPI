@@ -113,6 +113,36 @@ Important:
 - Missing or invalid API credentials return `401`.
 - Missing `lat` or `lon` on reverse-geocode returns `400`.
 - Out-of-range `lat` or `lon` returns `400`.
+- API and pipeline errors return RFC 7807 Problem Details JSON with
+  `category` and `code` extensions.
+
+### Error Response Format
+
+Error responses use:
+
+- Content type: `application/problem+json`
+- Base fields: `type`, `title`, `status`, `detail`, `instance`
+- Extensions: `traceId`, `category`, `code`
+
+Error categories:
+
+- `api` (input/domain-level failures)
+- `platform` (auth/rate-limit/pipeline failures)
+
+Example (`400`, missing `lat`):
+
+``` json
+{
+  "type": "https://api.reversegeocode.pt/problems/missing-lat",
+  "title": "Invalid request",
+  "status": 400,
+  "detail": "Missing required query parameter 'lat'.",
+  "instance": "/api/v1/reverse-geocode",
+  "traceId": "00-...-...",
+  "category": "api",
+  "code": "missing_lat"
+}
+```
 
 ------------------------------------------------------------------------
 
