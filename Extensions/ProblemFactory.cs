@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ReverseGeocodeApi.Extensions;
@@ -7,7 +8,7 @@ public sealed class ProblemFactory
 {
     private const string ProblemTypeBase = "https://api.reversegeocode.pt/problems/";
 
-    public ObjectResult CreateActionResult(
+    public IActionResult CreateActionResult(
         HttpContext httpContext,
         int status,
         string title,
@@ -16,12 +17,12 @@ public sealed class ProblemFactory
         string code)
     {
         var problem = CreateProblemDetails(httpContext, status, title, detail, category, code);
-
-        var result = new ObjectResult(problem)
+        var result = new ContentResult
         {
-            StatusCode = status
+            StatusCode = status,
+            ContentType = "application/problem+json",
+            Content = JsonSerializer.Serialize(problem)
         };
-        result.ContentTypes.Add("application/problem+json");
 
         return result;
     }
@@ -34,8 +35,14 @@ public sealed class ProblemFactory
         string category,
         string code)
     {
-        var problem = CreateProblemDetails(httpContext, status, title, detail, category, code);
-        return Results.Json(problem, statusCode: status, contentType: "application/problem+json");
+        var extensions = CreateExtensions(httpContext, category, code);
+        return Results.Problem(
+            detail: detail,
+            instance: httpContext.Request.Path,
+            statusCode: status,
+            title: title,
+            type: $"{ProblemTypeBase}{code.Replace('_', '-')}",
+            extensions: extensions);
     }
 
     public Task WriteAsync(
@@ -50,7 +57,8 @@ public sealed class ProblemFactory
         var problem = CreateProblemDetails(httpContext, status, title, detail, category, code);
         httpContext.Response.StatusCode = status;
         httpContext.Response.ContentType = "application/problem+json";
-        return httpContext.Response.WriteAsJsonAsync(problem, cancellationToken: cancellationToken);
+        var payload = JsonSerializer.Serialize(problem);
+        return httpContext.Response.WriteAsync(payload, cancellationToken);
     }
 
     private static ProblemDetails CreateProblemDetails(
@@ -77,5 +85,19 @@ public sealed class ProblemFactory
         problem.Extensions["code"] = code;
 
         return problem;
+    }
+
+    private static Dictionary<string, object?> CreateExtensions(
+        HttpContext httpContext,
+        string category,
+        string code)
+    {
+        var traceId = Activity.Current?.Id ?? httpContext.TraceIdentifier;
+        return new Dictionary<string, object?>
+        {
+            ["traceId"] = traceId,
+            ["category"] = category,
+            ["code"] = code
+        };
     }
 }
