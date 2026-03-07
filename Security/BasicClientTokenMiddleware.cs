@@ -9,6 +9,7 @@ public sealed class BasicClientTokenMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<BasicClientTokenMiddleware> _logger;
     private readonly IMemoryCache _touchCache;
+    private readonly object _touchCacheLock = new();
 
     public BasicClientTokenMiddleware(
         RequestDelegate next,
@@ -130,10 +131,13 @@ public sealed class BasicClientTokenMiddleware
     private bool ShouldTouchTokenToday(string email, Guid guid)
     {
         var cacheKey = $"token-touch:{DateTime.UtcNow:yyyyMMdd}:{email}:{guid:N}";
-        if (_touchCache.TryGetValue(cacheKey, out _))
-            return false;
+        lock (_touchCacheLock)
+        {
+            if (_touchCache.TryGetValue(cacheKey, out _))
+                return false;
 
-        _touchCache.Set(cacheKey, true, TimeSpan.FromDays(2));
-        return true;
+            _touchCache.Set(cacheKey, true, TimeSpan.FromDays(2));
+            return true;
+        }
     }
 }
