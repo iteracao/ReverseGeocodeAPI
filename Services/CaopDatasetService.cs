@@ -294,6 +294,9 @@ public sealed class CaopDatasetService
         if (Path.IsPathRooted(fileName))
             throw new InvalidOperationException($"{label} filename must be relative to dataset directory.");
 
+        if (fileName.Contains(Path.DirectorySeparatorChar) || fileName.Contains(Path.AltDirectorySeparatorChar))
+            throw new InvalidOperationException($"{label} filename must not contain path separators.");
+
         var datasetDirFull = Path.GetFullPath(datasetDir);
         var separator = Path.DirectorySeparatorChar.ToString();
         var datasetDirFullWithSep = datasetDirFull.EndsWith(separator, StringComparison.Ordinal)
@@ -301,7 +304,7 @@ public sealed class CaopDatasetService
             : datasetDirFull + separator;
 
         var candidatePath = Path.GetFullPath(Path.Combine(datasetDirFull, fileName));
-        if (!candidatePath.StartsWith(datasetDirFullWithSep, StringComparison.OrdinalIgnoreCase))
+        if (!candidatePath.StartsWith(datasetDirFullWithSep, StringComparison.Ordinal))
             throw new InvalidOperationException($"{label} filename resolves outside dataset directory.");
 
         return candidatePath;
