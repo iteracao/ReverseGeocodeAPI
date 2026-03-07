@@ -1,212 +1,97 @@
-# Reverse Geocode API (Portugal)
+﻿# ReverseGeocodeApi
 
-![.NET](https://img.shields.io/badge/.NET-8.0-purple)
-![API](https://img.shields.io/badge/API-Reverse%20Geocoding-blue)
-![Dataset](https://img.shields.io/badge/Data-CAOP%202025-green)
-![Hosting](https://img.shields.io/badge/Hosting-Azure%20App%20Service-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-![GitHub stars](https://img.shields.io/github/stars/iteracao/ReverseGeocodeAPI)
+Reverse geocoding API for Portugal using official CAOP boundaries.
 
-High-performance **Reverse Geocoding API for Portugal** that converts
-geographic coordinates (latitude / longitude) into official Portuguese
-administrative divisions using the **CAOP dataset**.
+## What it does
 
-The API resolves coordinates into:
+Given latitude and longitude, the API returns:
 
--   Distrito
--   Concelho
--   Freguesia
--   DICOFRE (INE administrative code)
+- `distrito`
+- `concelho`
+- `freguesia`
+- `dicofre`
+- dataset metadata (`dataset`, `datasetCreatedAtUtc`)
 
-Designed to be **simple, fast and production-ready**.
+## Current architecture
 
-------------------------------------------------------------------------
+- Platform: ASP.NET Core (.NET 8)
+- Dataset: CAOP TSV/TSV.GZ loaded in memory
+- Spatial lookup: NetTopologySuite with STRtree index
+- API auth: HTTP Basic (`email:guid-token`)
+- Portal auth: Google or Microsoft OAuth (cookie session)
+- Token storage: SQLite (`App_Data/clienttokens.db`)
+- Logging: Serilog file + console
+- Rate limit: 100 requests/min per authenticated API client key
 
-# Live API
+## Endpoints
 
-https://reversegeocodeapi-hsadd5g3bjabbmft.westeurope-01.azurewebsites.net/
+### Public
 
-Example request:
+- `GET /health`
+  - Returns service status and dataset load state.
 
-GET /api/v1/reverse-geocode?lat=40.3479&lon=-8.5941
+### API (Basic auth required)
 
-------------------------------------------------------------------------
+- `GET /api/v1/datasets`
+- `GET /api/v1/reverse-geocode?lat={lat}&lon={lon}`
 
-# Key Features
+`lat` and `lon` are required.
 
--   Reverse geocoding using official **CAOP administrative boundaries**
--   Built with **ASP.NET Core (.NET 8)**
--   OAuth authentication (**Google / Microsoft**)
--   Client **GUID token per user**
--   API authentication using **HTTP Basic (email:token)**
--   Developer portal for token management
--   **SQLite token storage**
--   Fast **in-memory dataset loading**
--   Structured logging with **Serilog**
--   Built-in **rate limiting**
--   Health endpoint for monitoring
--   Suitable for **IIS, Kestrel or Azure App Service**
+Validation rules:
 
-------------------------------------------------------------------------
+- missing `lat` or `lon` -> `400`
+- `lat` outside `[-90, 90]` -> `400`
+- `lon` outside `[-180, 180]` -> `400`
+- no boundary match -> `404`
 
-# API Endpoint
+## Authentication model
 
-GET /api/v1/reverse-geocode
+Two layers are used:
 
-### Parameters
+1. Portal login (Google or Microsoft) to identify the user.
+2. API access with Basic auth:
+   - username: OAuth email
+   - password: issued GUID client token
 
-  Parameter   Description
-  ----------- -------------
-  lat         Latitude
-  lon         Longitude
+One active token per email is enforced.
 
-### Example
+## Security behavior
 
-GET /api/v1/reverse-geocode?lat=40.3479&lon=-8.5941
+- Portal POST actions use antiforgery validation (`X-CSRF-TOKEN`).
+- Protected portal endpoints require authenticated cookie session.
+- API requests require valid Basic credentials.
+- Rate-limit logging does not store raw Basic headers.
 
-------------------------------------------------------------------------
+## Local run
 
-# Example Response
+1. Configure auth settings (environment/app settings):
+   - `Authentication:Google:ClientId`
+   - `Authentication:Google:ClientSecret`
+   - `Authentication:Microsoft:ClientId`
+   - `Authentication:Microsoft:ClientSecret`
+   - `Authentication:Microsoft:TenantId` (optional, default `common`)
+2. Ensure dataset exists in `Data/CAOP2025/`.
+3. Run:
 
-``` json
-{
-  "dataset": "CAOP2025",
-  "datasetCreatedAtUtc": "2026-03-05T14:27:35Z",
-  "dicofre": "060334",
-  "freguesia": "União das freguesias de Coimbra (Sé Nova, Santa Cruz, Almedina e São Bartolomeu)",
-  "concelho": "Coimbra",
-  "distrito": "Coimbra"
-}
+```bash
+dotnet run
 ```
 
-------------------------------------------------------------------------
+Open:
 
-# Authentication Model
+- `/login.html` for portal login
+- `/tokens.html` for token management
 
-Two authentication layers exist.
+## Operational notes
 
-### 1. User authentication
+- First reverse-geocode request after startup is slower (dataset load).
+- Subsequent requests are significantly faster (in-memory + spatial index).
+- `LastSeenAtUtc` is updated at most once per UTC day per active token.
 
-Users authenticate using:
+## Deployment
 
--   Google OAuth
--   Microsoft OAuth
+See [DEPLOYMENT.md](DEPLOYMENT.md) for production setup and verification.
 
-### 2. API authentication
+## License
 
-API calls require:
-
-Authorization: Basic base64(email:token)
-
-Where:
-
-email = OAuth authenticated email\
-token = GUID client token
-
-------------------------------------------------------------------------
-
-# Client Tokens
-
-Tokens are stored in SQLite table:
-
-ApiClientTokens
-
-Fields:
-
--   Token
--   Email
--   CreatedAtUtc
--   LastSeenAtUtc
--   RevokedAtUtc
-
-Only **one active token per user** is allowed.
-
-------------------------------------------------------------------------
-
-# Dataset
-
-Source: **CAOP --- Carta Administrativa Oficial de Portugal**
-
-Location:
-
-Data/CAOP2025/
-
-The dataset is loaded **in memory at runtime** for fast spatial lookup
-using **NetTopologySuite**.
-
-------------------------------------------------------------------------
-
-# Developer Portal
-
-Static pages available for users:
-
-wwwroot/login.html\
-wwwroot/tokens.html\
-wwwroot/legal.html
-
-These pages allow users to authenticate and obtain their API token.
-
-------------------------------------------------------------------------
-
-# Rate Limiting
-
-Default rate limit:
-
-100 requests per minute
-
-------------------------------------------------------------------------
-
-# Logging
-
-Structured logging using **Serilog**.
-
-Logs stored in:
-
-Logs/
-
-------------------------------------------------------------------------
-
-# Health Endpoint
-
-GET /health
-
-Example response:
-
-``` json
-{
-  "status": "ok",
-  "dataset": "CAOP2025",
-  "records": 3049
-}
-```
-
-------------------------------------------------------------------------
-
-# Deployment
-
-Supports deployment via:
-
--   IIS
--   Kestrel
--   Azure App Service
-
-Important folders:
-
-App_Data/\
-Logs/
-
-SQLite database:
-
-App_Data/clienttokens.db
-
-------------------------------------------------------------------------
-
-# Contact
-
-info@iteracao.pt
-
-------------------------------------------------------------------------
-
-# License
-
-MIT License
+MIT
