@@ -21,13 +21,13 @@
     <meta name="twitter:title" content="Reverse Geocode API Portugal" />
     <meta name="twitter:description" content="Official CAOP-based reverse geocoding for Portugal using CAOP administrative boundaries." />
 
-    <link rel="canonical" href="/" />
+    <link rel="canonical" href="login.html" />
 
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="manifest" href="site.webmanifest" />
 
     <style>
         :root {
@@ -587,7 +587,7 @@
                 <div class="footer">
                     By continuing, you agree to sign in with your chosen provider in order to access token management and API usage information.
                     <br />
-                    <a href="/legal.html">Terms of Use &amp; Privacy Notice</a>
+                    <a href="legal.html">Terms of Use &amp; Privacy Notice</a>
                     <br />
                     Contact: <a href="mailto:info@iteracao.pt">info@iteracao.pt</a>
                 </div>
@@ -624,9 +624,9 @@
 
         (async () => {
             try {
-                const r = await fetch('/auth/me', { credentials: 'include' });
+                const r = await fetch('auth/me', { credentials: 'include' });
                 if (r.ok) {
-                    location.replace('/tokens.html');
+                    location.replace('tokens.html');
                     return;
                 }
 

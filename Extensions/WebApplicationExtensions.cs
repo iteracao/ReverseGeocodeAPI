@@ -108,7 +108,7 @@ public static class WebApplicationExtensions
             if (ctx.Request.Path.StartsWithSegments("/tokens") &&
                 ctx.User?.Identity?.IsAuthenticated != true)
             {
-                ctx.Response.Redirect("/login.html");
+                ctx.Response.Redirect($"{ctx.Request.PathBase}/login.html");
                 return;
             }
 

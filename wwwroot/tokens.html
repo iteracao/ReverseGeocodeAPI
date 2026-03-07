@@ -14,13 +14,13 @@
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#0b1220" />
 
-    <link rel="canonical" href="/tokens.html" />
+    <link rel="canonical" href="tokens.html" />
 
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="manifest" href="site.webmanifest" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -335,7 +335,7 @@
 
     <footer style="text-align:center;margin-top:30px;color:rgba(255,255,255,.45);font-size:12px;line-height:1.6">
         Reverse Geocode API — Portugal CAOP administrative boundaries<br />
-        <a href="/legal.html" style="color:#cfe7ff;text-decoration:none;">Terms of Use &amp; Privacy Notice</a><br />
+        <a href="legal.html" style="color:#cfe7ff;text-decoration:none;">Terms of Use &amp; Privacy Notice</a><br />
         Contact: <a href="mailto:info@iteracao.pt" style="color:#cfe7ff;text-decoration:none;">info@iteracao.pt</a>
     </footer>
 
@@ -359,7 +359,8 @@
         }
 
         function updateExamples(email, guid) {
-            const base = window.location.origin;
+            const appBasePath = new URL('.', window.location.href).pathname.replace(/\/$/, '');
+            const base = `${window.location.origin}${appBasePath}`;
             const pair = `${email}:${guid}`;
             const responseExample = `{
   "dataset": "CAOP2025",
@@ -472,13 +473,13 @@ Content-Type: application/problem+json
         }
 
         async function loadMe() {
-            const r = await fetch('/auth/me', { credentials: 'include' });
-            if (!r.ok) { location.href = '/login.html'; return null; }
+            const r = await fetch('auth/me', { credentials: 'include' });
+            if (!r.ok) { location.href = 'login.html'; return null; }
             return await r.json();
         }
 
         async function getExistingToken() {
-            const r = await fetch('/auth/client-token', { credentials: 'include' });
+            const r = await fetch('auth/client-token', { credentials: 'include' });
             if (!r.ok) {
                 console.warn("client-token GET failed", r.status);
                 return null;
@@ -487,7 +488,7 @@ Content-Type: application/problem+json
         }
 
         async function loadCsrfToken() {
-            const r = await fetch('/auth/antiforgery-token', { credentials: 'include' });
+            const r = await fetch('auth/antiforgery-token', { credentials: 'include' });
             if (!r.ok) {
                 const problem = await parseProblem(r);
                 const suffix = problem.code ? ` (${problem.code})` : "";
@@ -508,7 +509,7 @@ Content-Type: application/problem+json
                 await loadCsrfToken();
             }
 
-            const r = await fetch('/auth/client-token', {
+            const r = await fetch('auth/client-token', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -529,7 +530,7 @@ Content-Type: application/problem+json
                     await loadCsrfToken();
                 }
 
-                await fetch('/logout', {
+                await fetch('logout', {
                     method: 'POST',
                     credentials: 'include',
                     headers: {
@@ -537,7 +538,7 @@ Content-Type: application/problem+json
                     }
                 });
             } finally {
-                location.href = '/login.html';
+                location.href = 'login.html';
             }
         }
 
