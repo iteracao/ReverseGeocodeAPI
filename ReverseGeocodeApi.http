@@ -1,6 +1,19 @@
-@ReverseGeocodeApi_HostAddress = http://localhost:5121
+@ReverseGeocodeApi_HostAddress = https://localhost:7099
+@basicAuth = Basic REPLACE_WITH_BASE64_EMAIL_COLON_GUID
 
-GET {{ReverseGeocodeApi_HostAddress}}/weatherforecast/
+GET {{ReverseGeocodeApi_HostAddress}}/health
+Accept: application/json
+
+###
+
+GET {{ReverseGeocodeApi_HostAddress}}/api/v1/datasets
+Authorization: {{basicAuth}}
+Accept: application/json
+
+###
+
+GET {{ReverseGeocodeApi_HostAddress}}/api/v1/reverse-geocode?lat=40.2033&lon=-8.4103
+Authorization: {{basicAuth}}
 Accept: application/json
 
 ###
