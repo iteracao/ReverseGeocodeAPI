@@ -162,14 +162,24 @@ public sealed class CaopDatasetService
             lineNo++;
             if (string.IsNullOrWhiteSpace(line)) continue;
 
-            var parts = line.Split('\t');
-            if (parts.Length < 7)
+            var remaining = line.AsSpan();
+            if (!TryReadRequiredColumn(ref remaining, out var dicofreSpan) ||
+                !TryReadRequiredColumn(ref remaining, out var freguesiaSpan) ||
+                !TryReadRequiredColumn(ref remaining, out var concelhoSpan) ||
+                !TryReadRequiredColumn(ref remaining, out var distritoSpan) ||
+                !TryReadRequiredColumn(ref remaining, out var areaHaSpan) ||
+                !TryReadRequiredColumn(ref remaining, out var descricaoSpan))
             {
-                _logger.LogWarning("Skipping invalid TSV row at line {LineNo}: expected 7 columns, got {Count}", lineNo, parts.Length);
+                _logger.LogWarning("Skipping invalid TSV row at line {LineNo}: expected at least 7 columns", lineNo);
                 continue;
             }
 
-            var wkt = parts[6];
+            var wktSpan = remaining;
+            var nextTab = wktSpan.IndexOf('\t');
+            if (nextTab >= 0)
+                wktSpan = wktSpan[..nextTab];
+
+            var wkt = wktSpan.ToString();
             Geometry geom;
             try
             {
@@ -182,16 +192,16 @@ public sealed class CaopDatasetService
             }
 
             double areaHa = 0;
-            _ = double.TryParse(parts[4], NumberStyles.Float, CultureInfo.InvariantCulture, out areaHa);
+            _ = double.TryParse(areaHaSpan, NumberStyles.Float, CultureInfo.InvariantCulture, out areaHa);
 
             var rec = new FreguesiaRecord
             {
-                Dicofre = parts[0],
-                Freguesia = parts[1],
-                Concelho = parts[2],
-                Distrito = parts[3],
+                Dicofre = dicofreSpan.ToString(),
+                Freguesia = freguesiaSpan.ToString(),
+                Concelho = concelhoSpan.ToString(),
+                Distrito = distritoSpan.ToString(),
                 AreaHa = areaHa,
-                Descricao = parts[5],
+                Descricao = descricaoSpan.ToString(),
                 Geometry = geom,
                 Envelope = geom.EnvelopeInternal
             };
@@ -260,6 +270,20 @@ public sealed class CaopDatasetService
         if (!root.TryGetProperty(p1, out var el1)) return false;
         if (el1.ValueKind != JsonValueKind.Object) return false;
         return TryGetString(el1, p2, out value);
+    }
+
+    private static bool TryReadRequiredColumn(ref ReadOnlySpan<char> remaining, out ReadOnlySpan<char> column)
+    {
+        var tabIndex = remaining.IndexOf('\t');
+        if (tabIndex < 0)
+        {
+            column = default;
+            return false;
+        }
+
+        column = remaining[..tabIndex];
+        remaining = remaining[(tabIndex + 1)..];
+        return true;
     }
 }
 
