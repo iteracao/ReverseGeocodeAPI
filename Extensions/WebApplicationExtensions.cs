@@ -147,25 +147,6 @@ public static class WebApplicationExtensions
             });
         });
 
-        app.MapGet("/api/v1/ops/forwarded-check", (HttpContext http) =>
-        {
-            var xForwardedFor = http.Request.Headers["X-Forwarded-For"].ToString();
-            var xForwardedProto = http.Request.Headers["X-Forwarded-Proto"].ToString();
-            var xForwardedHost = http.Request.Headers["X-Forwarded-Host"].ToString();
-
-            return Results.Ok(new
-            {
-                remoteIp = http.Connection.RemoteIpAddress?.ToString(),
-                scheme = http.Request.Scheme,
-                host = http.Request.Host.Value,
-                pathBase = http.Request.PathBase.Value,
-                xForwardedFor,
-                xForwardedProto,
-                xForwardedHost,
-                timeUtc = DateTime.UtcNow
-            });
-        });
-
         app.MapMethods("/error", new[] { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS" }, (HttpContext ctx) =>
         {
             var problemFactory = ctx.RequestServices.GetRequiredService<ProblemFactory>();
