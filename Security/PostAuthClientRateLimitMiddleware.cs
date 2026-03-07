@@ -1,6 +1,6 @@
 using System.Threading.RateLimiting;
-using System.Collections.Concurrent;
 using System.Security.Claims;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ReverseGeocodeApi.Security;
 
@@ -8,14 +8,16 @@ public sealed class PostAuthClientRateLimitMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<PostAuthClientRateLimitMiddleware> _logger;
-    private readonly ConcurrentDictionary<string, FixedWindowRateLimiter> _limiters = new();
+    private readonly IMemoryCache _cache;
 
     public PostAuthClientRateLimitMiddleware(
         RequestDelegate next,
-        ILogger<PostAuthClientRateLimitMiddleware> logger)
+        ILogger<PostAuthClientRateLimitMiddleware> logger,
+        IMemoryCache cache)
     {
         _next = next;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task InvokeAsync(HttpContext ctx)
@@ -32,13 +34,7 @@ public sealed class PostAuthClientRateLimitMiddleware
         var key = $"client:{email.ToLowerInvariant()}:{token}";
         ctx.Items[HttpContextItemKeys.ApiRateLimitKey] = key;
 
-        var limiter = _limiters.GetOrAdd(key, _ => new FixedWindowRateLimiter(new FixedWindowRateLimiterOptions
-        {
-            PermitLimit = 100,
-            Window = TimeSpan.FromMinutes(1),
-            QueueLimit = 0,
-            AutoReplenishment = true
-        }));
+        var limiter = GetOrCreateLimiter(key);
 
         using var lease = await limiter.AcquireAsync(permitCount: 1, cancellationToken: ctx.RequestAborted);
         if (lease.IsAcquired)
@@ -66,5 +62,26 @@ public sealed class PostAuthClientRateLimitMiddleware
             status = StatusCodes.Status429TooManyRequests,
             detail = "Per-client rate limit exceeded. Please retry later."
         });
+    }
+
+    private FixedWindowRateLimiter GetOrCreateLimiter(string key)
+    {
+        return _cache.GetOrCreate($"post-auth-limiter:{key}", entry =>
+        {
+            entry.SlidingExpiration = TimeSpan.FromHours(2);
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
+            entry.RegisterPostEvictionCallback(static (_, value, _, _) =>
+            {
+                (value as IDisposable)?.Dispose();
+            });
+
+            return new FixedWindowRateLimiter(new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+        })!;
     }
 }
