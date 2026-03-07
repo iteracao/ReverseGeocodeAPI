@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt">
+<html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -285,7 +285,7 @@
             <div class="brand">
                 <div class="logoMark" aria-hidden="true">RG</div>
                 <div>
-                    <h1>Reverse Geocode API — Credenciais</h1>
+                    <h1>Reverse Geocode API — Credentials</h1>
                 </div>
             </div>
 
@@ -295,26 +295,26 @@
         <div class="card">
             <div class="grid">
                 <div class="panel">
-                    <h3>Utilizador</h3>
+                    <h3>User</h3>
 
                     <div class="label">Email</div>
                     <input id="email" class="field" readonly value="…" />
 
                     <div class="label">Client Token (GUID)</div>
-                    <input id="token" class="field mono" readonly value="" placeholder="Ainda não gerado" />
+                    <input id="token" class="field mono" readonly value="" placeholder="Not generated yet" />
 
                     <div class="btnRow">
-                        <button id="generate" class="btn primary" type="button">Gerar token</button>
+                        <button id="generate" class="btn primary" type="button">Generate token</button>
                         <button id="copyGuid" class="btn" type="button" disabled>Copiar GUID</button>
-                        <span id="status" class="status">A carregar…</span>
+                        <span id="status" class="status">Loading…</span>
                     </div>
                 </div>
 
                 <div class="panel">
-                    <h3>Como usar a API</h3>
+                    <h3>How to use the API</h3>
 
                     <div class="note">
-                        Em cada pedido, envia:
+                        Send this on every request:
                         <ul>
                             <li><b>Authorization</b>: Basic base64(<i>email:guid</i>)</li>
                         </ul>
@@ -322,12 +322,12 @@
 
                     <div class="note">
                         Endpoint: <b>/api/v1/reverse-geocode</b><br>
-                        Parâmetros: <b>lat (latitude)</b>, <b>lon (longitude)</b>
+                        Parameters: <b>lat (latitude)</b>, <b>lon (longitude)</b>
                     </div>
 
-                    <pre id="curl">Gera o token para ver exemplos.</pre>
-                    <pre id="respOk">Gera o token para ver exemplos.</pre>
-                    <pre id="respErr">Gera o token para ver exemplos.</pre>
+                    <pre id="curl">Generate a token to see examples.</pre>
+                    <pre id="respOk">Generate a token to see examples.</pre>
+                    <pre id="respErr">Generate a token to see examples.</pre>
                 </div>
             </div>
         </div>
@@ -424,13 +424,13 @@ Rate limit exceeded. Please retry later.
             if (guid) {
                 $("generate").disabled = true;
                 updateExamples(email || "<EMAIL>", guid);
-                setStatus("Token já existe ✓", "ok");
+                setStatus("Token already exists ✓", "ok");
             } else {
                 $("generate").disabled = false;
-                $("curl").textContent = "Gera primeiro o token para ver os exemplos.";
-                $("respOk").textContent = "Gera primeiro o token para ver os exemplos.";
-                $("respErr").textContent = "Gera primeiro o token para ver os exemplos.";
-                setStatus("Autenticado ✓ (gera token quando quiseres)", "ok");
+                $("curl").textContent = "Generate a token first to see examples.";
+                $("respOk").textContent = "Generate a token first to see examples.";
+                $("respErr").textContent = "Generate a token first to see examples.";
+                setStatus("Authenticated ✓ (generate a token whenever you need)", "ok");
             }
         }
 
@@ -470,7 +470,7 @@ Rate limit exceeded. Please retry later.
 
         $("generate").addEventListener("click", async () => {
             $("generate").disabled = true;
-            setStatus("A gerar token…", "warn");
+            setStatus("Generating token…", "warn");
 
             try {
                 const tok = await generateToken();
@@ -483,17 +483,17 @@ Rate limit exceeded. Please retry later.
 
                 if (guid) {
                     updateExamples(email || "<EMAIL>", guid);
-                    setStatus("Token gerado ✓", "ok");
+                    setStatus("Token generated ✓", "ok");
                     $("generate").disabled = true;
                 } else {
-                    setStatus("Resposta inválida", "bad");
+                    setStatus("Invalid response", "bad");
                     $("generate").disabled = false;
                 }
             } catch (e) {
-                setStatus("Erro a gerar token", "bad");
+                setStatus("Error generating token", "bad");
                 $("token").value = "";
                 $("copyGuid").disabled = true;
-                $("curl").textContent = "Não foi possível gerar token.";
+                $("curl").textContent = "Unable to generate token.";
                 $("respOk").textContent = "";
                 $("respErr").textContent = "";
                 console.error(e);
@@ -511,14 +511,14 @@ Rate limit exceeded. Please retry later.
 
             try {
                 await navigator.clipboard.writeText(guid);
-                setStatus("GUID copiado ✓", "ok");
+                setStatus("GUID copied ✓", "ok");
             } catch {
-                setStatus("Não foi possível copiar", "bad");
+                setStatus("Unable to copy", "bad");
             }
         });
 
         (async () => {
-            setStatus("A carregar…", "");
+            setStatus("Loading…", "");
             const me = await loadMe();
             if (!me) return;
 
