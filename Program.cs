@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
+using ReverseGeocodeApi.Models;
 using ReverseGeocodeApi.Security;
 using System.Diagnostics;
 using System.Threading.RateLimiting;
@@ -31,6 +32,23 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers();
 builder.Services.Configure<ReverseGeocodeApi.Models.CaopOptions>(builder.Configuration.GetSection("Caop"));
 builder.Services.AddSingleton<ReverseGeocodeApi.Services.CaopDatasetService>();
+builder.Services.AddOptions<GoogleAuthOptions>()
+    .BindConfiguration("Authentication:Google")
+    .Validate(o => !string.IsNullOrWhiteSpace(o.ClientId), "Authentication:Google:ClientId is required.")
+    .Validate(o => !string.IsNullOrWhiteSpace(o.ClientSecret), "Authentication:Google:ClientSecret is required.")
+    .ValidateOnStart();
+builder.Services.AddOptions<MicrosoftAuthOptions>()
+    .BindConfiguration("Authentication:Microsoft")
+    .Validate(o => !string.IsNullOrWhiteSpace(o.ClientId), "Authentication:Microsoft:ClientId is required.")
+    .Validate(o => !string.IsNullOrWhiteSpace(o.ClientSecret), "Authentication:Microsoft:ClientSecret is required.")
+    .ValidateOnStart();
+
+var googleAuth = builder.Configuration.GetSection("Authentication:Google").Get<GoogleAuthOptions>() ?? new();
+var microsoftAuth = builder.Configuration.GetSection("Authentication:Microsoft").Get<MicrosoftAuthOptions>() ?? new();
+if (string.IsNullOrWhiteSpace(microsoftAuth.TenantId))
+{
+    microsoftAuth.TenantId = "common";
+}
 
 // User context (lightweight, no EF)
 builder.Services.AddHttpContextAccessor();
@@ -84,8 +102,8 @@ builder.Services
     })
     .AddGoogle(options =>
     {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+        options.ClientId = googleAuth.ClientId;
+        options.ClientSecret = googleAuth.ClientSecret;
         options.SignInScheme = "External";
 
         // Useful if you see "Correlation failed" behind some proxies
@@ -99,10 +117,9 @@ builder.Services
     })
     .AddOpenIdConnect("Microsoft", options =>
     {
-        var tenantId = builder.Configuration["Authentication:Microsoft:TenantId"] ?? "common";
-        options.Authority = $"https://login.microsoftonline.com/{tenantId}/v2.0";
-        options.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"]!;
+        options.Authority = $"https://login.microsoftonline.com/{microsoftAuth.TenantId}/v2.0";
+        options.ClientId = microsoftAuth.ClientId;
+        options.ClientSecret = microsoftAuth.ClientSecret;
         options.CallbackPath = "/signin-microsoft";
         options.ResponseType = "code";
         options.SaveTokens = true;
