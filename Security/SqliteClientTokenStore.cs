@@ -181,8 +181,15 @@ LIMIT 1;";
         cmd.CommandText = @"
 UPDATE ApiClientTokens
 SET LastSeenAtUtc = $now
-WHERE Email = $email AND Token = $token AND RevokedAtUtc IS NULL;";
+WHERE Email = $email
+  AND Token = $token
+  AND RevokedAtUtc IS NULL
+  AND (
+      LastSeenAtUtc IS NULL
+      OR LastSeenAtUtc < $todayUtc
+  );";
         cmd.Parameters.AddWithValue("$now", DateTime.UtcNow.ToString("O"));
+        cmd.Parameters.AddWithValue("$todayUtc", DateTime.UtcNow.Date.ToString("O"));
         cmd.Parameters.AddWithValue("$email", email);
         cmd.Parameters.AddWithValue("$token", token.ToString());
 
