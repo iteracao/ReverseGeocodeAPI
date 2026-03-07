@@ -43,9 +43,21 @@ public sealed class ReverseGeocodeController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-    public IActionResult ReverseGeocode([FromQuery] double lat, [FromQuery] double lon)
+    public IActionResult ReverseGeocode([FromQuery] double? lat, [FromQuery] double? lon)
     {
         var email = User?.Identity?.Name ?? HttpContext.Items["ClientEmail"]?.ToString() ?? "anonymous";
+
+        if (lat is null)
+        {
+            _logger.LogWarning("Missing reverse geocode latitude requested by {Email}", email);
+            return BadRequest("Missing required query parameter 'lat'.");
+        }
+
+        if (lon is null)
+        {
+            _logger.LogWarning("Missing reverse geocode longitude requested by {Email}", email);
+            return BadRequest("Missing required query parameter 'lon'.");
+        }
 
         if (lat is < -90 or > 90)
         {
@@ -59,7 +71,7 @@ public sealed class ReverseGeocodeController : ControllerBase
             return BadRequest("Invalid 'lon'.");
         }
 
-        var result = _service.ReverseGeocode(lat, lon);
+        var result = _service.ReverseGeocode(lat.Value, lon.Value);
         if (result == null)
         {
             _logger.LogInformation(
