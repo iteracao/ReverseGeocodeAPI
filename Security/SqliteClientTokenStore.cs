@@ -82,62 +82,43 @@ WHERE RevokedAtUtc IS NULL;
         await conn.OpenAsync(ct);
 
         await EnsureInitializedAsync(conn, ct);
-
-        await using (var getCmd = conn.CreateCommand())
-        {
-            getCmd.CommandText = @"
-SELECT Token
-FROM ApiClientTokens
-WHERE Email = $email AND RevokedAtUtc IS NULL
-ORDER BY CreatedAtUtc ASC
-LIMIT 1;";
-            getCmd.Parameters.AddWithValue("$email", email);
-
-            var existing = (string?)await getCmd.ExecuteScalarAsync(ct);
-            if (!string.IsNullOrWhiteSpace(existing) && Guid.TryParse(existing, out var g))
-            {
-                _logger.LogInformation("Reusing existing active client token for {Email}", email);
-                return g;
-            }
-        }
-
-        var token = Guid.NewGuid();
+        var candidate = Guid.NewGuid();
         var now = DateTime.UtcNow.ToString("O");
 
-        try
+        await using (var insCmd = conn.CreateCommand())
         {
-            await using var insCmd = conn.CreateCommand();
             insCmd.CommandText = @"
-INSERT INTO ApiClientTokens (Token, Email, CreatedAtUtc, LastSeenAtUtc, RevokedAtUtc)
+INSERT OR IGNORE INTO ApiClientTokens (Token, Email, CreatedAtUtc, LastSeenAtUtc, RevokedAtUtc)
 VALUES ($token, $email, $created, $lastSeen, NULL);";
-            insCmd.Parameters.AddWithValue("$token", token.ToString());
+            insCmd.Parameters.AddWithValue("$token", candidate.ToString());
             insCmd.Parameters.AddWithValue("$email", email);
             insCmd.Parameters.AddWithValue("$created", now);
             insCmd.Parameters.AddWithValue("$lastSeen", now);
 
             await insCmd.ExecuteNonQueryAsync(ct);
-
-            _logger.LogInformation("Issued new client token for {Email}", email);
-            return token;
         }
-        catch (SqliteException ex) when (ex.SqliteErrorCode == 19)
-        {
-            _logger.LogWarning(ex, "Concurrent token issuance detected for {Email}; re-reading existing token", email);
 
-            await using var retryCmd = conn.CreateCommand();
-            retryCmd.CommandText = @"
+        await using var getCmd = conn.CreateCommand();
+        getCmd.CommandText = @"
 SELECT Token
 FROM ApiClientTokens
 WHERE Email = $email AND RevokedAtUtc IS NULL
+ORDER BY CreatedAtUtc ASC
 LIMIT 1;";
-            retryCmd.Parameters.AddWithValue("$email", email);
+        getCmd.Parameters.AddWithValue("$email", email);
 
-            var existing = (string?)await retryCmd.ExecuteScalarAsync(ct);
-            if (!string.IsNullOrWhiteSpace(existing) && Guid.TryParse(existing, out var g))
-                return g;
+        var existing = (string?)await getCmd.ExecuteScalarAsync(ct);
+        if (!string.IsNullOrWhiteSpace(existing) && Guid.TryParse(existing, out var token))
+        {
+            if (token == candidate)
+                _logger.LogInformation("Issued new client token for {Email}", email);
+            else
+                _logger.LogInformation("Reusing existing active client token for {Email}", email);
 
-            throw;
+            return token;
         }
+
+        throw new InvalidOperationException("Failed to issue or retrieve active client token.");
     }
 
     public async Task<bool> IsValidAsync(string email, Guid token, CancellationToken ct = default)
