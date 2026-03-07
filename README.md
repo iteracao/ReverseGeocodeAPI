@@ -39,9 +39,10 @@ GET /api/v1/reverse-geocode?lat=40.3479&lon=-8.5941
 -   OAuth authentication (**Google / Microsoft**)
 -   Client **GUID token per user**
 -   API authentication using **HTTP Basic (email:token)**
+-   Portal POST protection with **antiforgery token** (`X-CSRF-TOKEN`)
 -   Developer portal for token management
 -   **SQLite token storage**
--   Fast **in-memory dataset loading**
+-   Fast **in-memory dataset loading** with **STRtree spatial index**
 -   Structured logging with **Serilog**
 -   Built-in **rate limiting**
 -   Health endpoint for monitoring
@@ -53,12 +54,16 @@ GET /api/v1/reverse-geocode?lat=40.3479&lon=-8.5941
 
 GET /api/v1/reverse-geocode
 
+Additional API endpoint:
+
+GET /api/v1/datasets
+
 ### Parameters
 
   Parameter   Description
   ----------- -------------
-  lat         Latitude
-  lon         Longitude
+  lat         Latitude (required, range -90 to 90)
+  lon         Longitude (required, range -180 to 180)
 
 ### Example
 
@@ -103,6 +108,12 @@ Where:
 email = OAuth authenticated email\
 token = GUID client token
 
+Important:
+
+- Missing or invalid API credentials return `401`.
+- Missing `lat` or `lon` on reverse-geocode returns `400`.
+- Out-of-range `lat` or `lon` returns `400`.
+
 ------------------------------------------------------------------------
 
 # Client Tokens
@@ -121,6 +132,8 @@ Fields:
 
 Only **one active token per user** is allowed.
 
+`LastSeenAtUtc` is updated at most once per UTC day for active tokens.
+
 ------------------------------------------------------------------------
 
 # Dataset
@@ -132,7 +145,7 @@ Location:
 Data/CAOP2025/
 
 The dataset is loaded **in memory at runtime** for fast spatial lookup
-using **NetTopologySuite**.
+using **NetTopologySuite** with **STRtree** indexing.
 
 ------------------------------------------------------------------------
 
@@ -145,6 +158,9 @@ wwwroot/tokens.html\
 wwwroot/legal.html
 
 These pages allow users to authenticate and obtain their API token.
+
+Portal POST endpoints (`/auth/client-token`, `/logout`) are protected with
+antiforgery validation using `X-CSRF-TOKEN`.
 
 ------------------------------------------------------------------------
 
@@ -176,9 +192,30 @@ Example response:
 {
   "status": "ok",
   "dataset": "CAOP2025",
+  "loaded": true,
   "records": 3049
 }
 ```
+
+------------------------------------------------------------------------
+
+# Configuration Notes
+
+OAuth settings should be supplied via secure configuration
+(environment variables / host configuration / secret store).
+
+Required keys:
+
+- Authentication:Google:ClientId
+- Authentication:Google:ClientSecret
+- Authentication:Microsoft:ClientId
+- Authentication:Microsoft:ClientSecret
+
+Optional:
+
+- Authentication:Microsoft:TenantId (defaults to `common`)
+
+The service validates required OAuth settings at startup.
 
 ------------------------------------------------------------------------
 

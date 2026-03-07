@@ -44,7 +44,7 @@ Unique index ensures one active token per user.
 
 ## Token Lifecycle
 
-Active → Revoked
+Active -> Revoked
 
 Revocation sets RevokedAtUtc.
 
@@ -88,3 +88,48 @@ wwwroot/ -- portal pages
 ## Monitoring
 
 Health endpoint: GET /health
+
+## Current Internal Structure
+
+- Program.cs: startup orchestration
+- Extensions/ServiceCollectionExtensions.cs: service/auth/rate-limit/antiforgery registration
+- Extensions/WebApplicationExtensions.cs: middleware and endpoint mapping
+- Services/CaopDatasetService.cs: dataset loading + reverse geocode lookup
+- Security/BasicClientTokenMiddleware.cs: Basic auth for `/api/*`
+- Security/SqliteClientTokenStore.cs: token issue/validate/revoke/touch
+
+## Current Security Details
+
+- Portal POST endpoints require antiforgery validation header: `X-CSRF-TOKEN`
+- Antiforgery token endpoint: `GET /auth/antiforgery-token`
+- Protected POST endpoints:
+  - `POST /auth/client-token`
+  - `POST /logout`
+- API auth failures return `401`
+
+## Reverse Geocode Validation Rules
+
+- `lat` and `lon` are required query parameters
+- Missing `lat`/`lon` -> `400`
+- Out-of-range `lat`/`lon` -> `400`
+- Valid input with no polygon match -> `404`
+
+## Performance Notes
+
+- Dataset is lazily loaded on first geocode request
+- Spatial lookup uses NetTopologySuite with STRtree indexing
+- First request after startup is slower due dataset/index warm-up
+- `LastSeenAtUtc` token touch is limited to once per UTC day
+
+## Configuration Validation
+
+The service validates required OAuth settings at startup:
+
+- Authentication:Google:ClientId
+- Authentication:Google:ClientSecret
+- Authentication:Microsoft:ClientId
+- Authentication:Microsoft:ClientSecret
+
+Optional:
+
+- Authentication:Microsoft:TenantId (defaults to `common`)

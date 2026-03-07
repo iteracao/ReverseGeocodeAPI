@@ -1,6 +1,6 @@
 # DEPLOYMENT.md
 
-## Reverse Geocode API — Deployment Guide
+## Reverse Geocode API - Deployment Guide
 
 This document describes the recommended deployment process for the Reverse Geocode API in IIS / Windows environments.
 
@@ -166,6 +166,11 @@ Required values:
 - Microsoft ClientId
 - Microsoft ClientSecret
 
+Startup behavior:
+
+- Google and Microsoft ClientId/ClientSecret are validated at startup.
+- Missing required values cause startup failure (fail-fast).
+
 ---
 
 ## 9. Database behavior
@@ -238,6 +243,7 @@ Verify after deployment:
 - rate limiting returns `429` when exceeded
 - logs are being written to `Logs/`
 - `/health` returns valid JSON
+- rate-limit logs should not contain raw Authorization header values
 
 ---
 
@@ -274,6 +280,13 @@ After publishing, run these checks in order:
 - bad token => `401`
 - revoked token => `401`
 - excessive requests => `429`
+- missing `lat` or `lon` => `400`
+- out-of-range `lat` / `lon` => `400`
+
+### Portal security checks
+- authenticated `GET /auth/antiforgery-token` => `200`
+- portal `POST /auth/client-token` without antiforgery token => `400`
+- portal `POST /logout` without antiforgery token => `400`
 
 ---
 
@@ -293,6 +306,12 @@ Expected useful log events:
 Log directory:
 
 - `Logs/`
+
+Note:
+
+- In HTTP-only local runs you may see warning:
+  `Failed to determine the https port for redirect.`
+- This warning should not appear in correctly configured HTTPS production.
 
 ---
 
@@ -320,6 +339,7 @@ Before going live, confirm all of the following:
 - [ ] ASP.NET Core Hosting Bundle is installed
 - [ ] `appsettings.Development.json` is not published
 - [ ] OAuth production secrets are configured correctly
+- [ ] Startup validation for OAuth settings passes
 - [ ] `App_Data` is writable
 - [ ] `Logs` is writable
 - [ ] `Data/CAOP2025` exists in publish output
@@ -327,6 +347,8 @@ Before going live, confirm all of the following:
 - [ ] login works
 - [ ] token generation works
 - [ ] API requests work with Basic auth
+- [ ] reverse-geocode validation (`400` for missing/out-of-range coordinates) works
+- [ ] antiforgery protection is active on portal POST endpoints
 - [ ] logs are being written
 - [ ] `robots.txt` is present
 - [ ] `legal.html` is reachable
