@@ -107,7 +107,7 @@ public sealed class BasicClientTokenMiddleware
         var identity = new ClaimsIdentity(claims, authenticationType: "BasicClientToken");
         ctx.User = new ClaimsPrincipal(identity);
         ctx.Items["ClientEmail"] = email;
-        ctx.Items["ApiRateLimitKey"] = $"email:{email}";
+        ctx.Items[HttpContextItemKeys.ApiRateLimitKey] = $"email:{email}";
 
         _logger.LogInformation(
             "API authentication succeeded for {Email} on {Method} {Path}",

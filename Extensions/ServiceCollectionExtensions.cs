@@ -15,8 +15,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddReverseGeocodeServices(
         this IServiceCollection services,
         IConfiguration configuration,
-        IWebHostEnvironment environment,
-        string apiRateLimitKeyItemName)
+        IWebHostEnvironment environment)
     {
         services.AddControllers();
         services.Configure<CaopOptions>(configuration.GetSection("Caop"));
@@ -135,7 +134,7 @@ public static class ServiceCollectionExtensions
                 var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
                     .CreateLogger("RateLimiting");
 
-                var rateLimitKey = context.HttpContext.Items.TryGetValue(apiRateLimitKeyItemName, out var keyObj)
+                var rateLimitKey = context.HttpContext.Items.TryGetValue(HttpContextItemKeys.ApiRateLimitKey, out var keyObj)
                     ? keyObj?.ToString()
                     : null;
 
@@ -162,7 +161,7 @@ public static class ServiceCollectionExtensions
 
             options.AddPolicy("api-per-client", httpContext =>
             {
-                var rateLimitKey = httpContext.Items.TryGetValue(apiRateLimitKeyItemName, out var keyObj)
+                var rateLimitKey = httpContext.Items.TryGetValue(HttpContextItemKeys.ApiRateLimitKey, out var keyObj)
                     ? keyObj?.ToString()
                     : null;
 

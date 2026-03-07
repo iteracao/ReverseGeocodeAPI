@@ -1,8 +1,6 @@
 ﻿using ReverseGeocodeApi.Extensions;
 using Serilog;
 
-const string ApiRateLimitKeyItemName = "ApiRateLimitKey";
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Ensure App_Data exists (IIS friendly)
@@ -19,8 +17,7 @@ builder.Host.UseSerilog();
 
 builder.Services.AddReverseGeocodeServices(
     builder.Configuration,
-    builder.Environment,
-    ApiRateLimitKeyItemName);
+    builder.Environment);
 
 var app = builder.Build();
 
