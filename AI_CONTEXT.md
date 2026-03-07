@@ -1,96 +1,90 @@
-﻿# AI_CONTEXT.md
+# AI_CONTEXT.md
 
-## Purpose
+## Project Overview
 
-Internal technical context for maintenance and code updates.
+Reverse Geocode API converts geographic coordinates into Portuguese
+administrative divisions using the CAOP dataset.
 
-## System summary
+Returned data: Distrito, Concelho, Freguesia, DICOFRE
 
-ReverseGeocodeApi resolves Portugal administrative boundaries from CAOP data.
+## Technology Stack
 
-Core response fields:
+.NET 8\
+ASP.NET Core Web API\
+SQLite\
+OAuth authentication\
+HTTP Basic API authentication\
+CAOP dataset\
+Serilog logging
 
-- `dataset`
-- `datasetCreatedAtUtc`
-- `dicofre`
-- `freguesia`
-- `concelho`
-- `distrito`
-- `areaHa`
-- `descricao`
+## Authentication Architecture
 
-## Stack
+### OAuth Identity
 
-- .NET 8 / ASP.NET Core
-- NetTopologySuite
-- SQLite (`Microsoft.Data.Sqlite`)
-- Serilog
-- Cookie auth + OAuth (Google/Microsoft)
-- Basic auth middleware for `/api/*`
+Users authenticate using Google or Microsoft. The service receives the
+user's email address.
 
-## Key runtime files/folders
+### API Token
 
-- `Program.cs`: app bootstrap and orchestration
-- `Extensions/ServiceCollectionExtensions.cs`: service/auth/security registration
-- `Extensions/WebApplicationExtensions.cs`: middleware + endpoint mapping
-- `Services/CaopDatasetService.cs`: dataset load and spatial lookup
-- `Security/BasicClientTokenMiddleware.cs`: Basic auth validation
-- `Security/SqliteClientTokenStore.cs`: token persistence and lifecycle
-- `Data/CAOP2025/`: CAOP dataset files
-- `App_Data/`: DP keys + `clienttokens.db`
-- `Logs/`: Serilog rolling files
+After authentication the user receives a GUID client token.
 
-## Endpoint model
+API requests must include: Authorization: Basic base64(email:token)
 
-Public:
+## Token Storage
 
-- `GET /health`
+SQLite table: ApiClientTokens
 
-Portal/auth (cookie-based):
+Columns: Token\
+Email\
+CreatedAtUtc\
+LastSeenAtUtc\
+RevokedAtUtc
 
-- `GET /auth/me`
-- `GET /auth/client-token`
-- `POST /auth/client-token` (antiforgery required)
-- `GET /auth/antiforgery-token`
-- `POST /logout` (antiforgery required)
+Unique index ensures one active token per user.
 
-API (Basic auth via middleware):
+## Token Lifecycle
 
-- `GET /api/v1/datasets`
-- `GET /api/v1/reverse-geocode`
+Active → Revoked
 
-## Important invariants
+Revocation sets RevokedAtUtc.
 
-- `lat` and `lon` are required query params for reverse geocode.
-- Missing/invalid coordinate input returns `400`.
-- One active client token per email.
-- `LastSeenAtUtc` updates once per UTC day.
-- API rate limit policy: fixed window 100/minute.
-- Swagger UI only in Development.
+Revoked tokens remain stored for auditing.
 
-## Security notes
+## Dataset
 
-- Portal POST operations are CSRF-protected with `X-CSRF-TOKEN`.
-- API auth expects Basic `base64(email:guid)`.
-- Logs should not include raw Basic credentials.
+Source: CAOP administrative boundaries.
 
-## Configuration requirements
+Location: Data/CAOP2025
 
-Required at startup (validated):
+Dataset loads into memory for fast polygon lookup.
 
-- `Authentication:Google:ClientId`
-- `Authentication:Google:ClientSecret`
-- `Authentication:Microsoft:ClientId`
-- `Authentication:Microsoft:ClientSecret`
+## API Endpoints
 
-Optional:
+GET /api/v1/reverse-geocode\
+GET /api/v1/datasets\
+GET /health
 
-- `Authentication:Microsoft:TenantId` (defaults to `common`)
+## Developer Portal
 
-## Testing shortcuts
+Located in wwwroot:
 
-- Build: `dotnet build`
-- Local run: `dotnet run`
-- Health: `GET /health`
+login.html\
+tokens.html\
+legal.html
 
-For deployment-specific checks, use `DEPLOYMENT.md`.
+## Logging
+
+Serilog structured logs.
+
+Directory: Logs/
+
+## Operational Folders
+
+App_Data/ -- SQLite token database\
+Logs/ -- application logs\
+Data/ -- CAOP dataset\
+wwwroot/ -- portal pages
+
+## Monitoring
+
+Health endpoint: GET /health
