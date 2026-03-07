@@ -136,7 +136,7 @@ public sealed class CaopDatasetService
                 tsvFile = tsvGzFromMeta!;
         }
 
-        var tsvPath = Path.Combine(datasetDir, tsvFile);
+        var tsvPath = ResolveDatasetFilePath(datasetDir, tsvFile, "TSV");
         if (!File.Exists(tsvPath))
             throw new FileNotFoundException($"TSV file not found: {tsvPath}");
 
@@ -284,6 +284,27 @@ public sealed class CaopDatasetService
         column = remaining[..tabIndex];
         remaining = remaining[(tabIndex + 1)..];
         return true;
+    }
+
+    private static string ResolveDatasetFilePath(string datasetDir, string fileName, string label)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+            throw new InvalidOperationException($"{label} filename is required.");
+
+        if (Path.IsPathRooted(fileName))
+            throw new InvalidOperationException($"{label} filename must be relative to dataset directory.");
+
+        var datasetDirFull = Path.GetFullPath(datasetDir);
+        var separator = Path.DirectorySeparatorChar.ToString();
+        var datasetDirFullWithSep = datasetDirFull.EndsWith(separator, StringComparison.Ordinal)
+            ? datasetDirFull
+            : datasetDirFull + separator;
+
+        var candidatePath = Path.GetFullPath(Path.Combine(datasetDirFull, fileName));
+        if (!candidatePath.StartsWith(datasetDirFullWithSep, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"{label} filename resolves outside dataset directory.");
+
+        return candidatePath;
     }
 }
 
