@@ -119,9 +119,18 @@ public static class WebApplicationExtensions
         {
             OnPrepareResponse = ctx =>
             {
-                ctx.Context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
-                ctx.Context.Response.Headers["Pragma"] = "no-cache";
-                ctx.Context.Response.Headers["Expires"] = "0";
+                var ext = Path.GetExtension(ctx.File.Name);
+                if (string.Equals(ext, ".html", StringComparison.OrdinalIgnoreCase))
+                {
+                    ctx.Context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+                    ctx.Context.Response.Headers["Pragma"] = "no-cache";
+                    ctx.Context.Response.Headers["Expires"] = "0";
+                    return;
+                }
+
+                ctx.Context.Response.Headers["Cache-Control"] = "public, max-age=86400";
+                ctx.Context.Response.Headers.Remove("Pragma");
+                ctx.Context.Response.Headers.Remove("Expires");
             }
         });
 
