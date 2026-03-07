@@ -169,26 +169,10 @@ public static class ServiceCollectionExtensions
                     {
                         title = "Too many requests",
                         status = StatusCodes.Status429TooManyRequests,
-                        detail = "Per-client rate limit exceeded. Please retry later."
+                        detail = "Rate limit exceeded. Please retry later."
                     }, cancellationToken);
                 }
             };
-
-            options.AddPolicy("api-per-client", httpContext =>
-            {
-                var rateLimitKey = $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
-                httpContext.Items[HttpContextItemKeys.ApiRateLimitKey] = rateLimitKey;
-
-                return RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: rateLimitKey,
-                    factory: _ => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = 100,
-                        Window = TimeSpan.FromMinutes(1),
-                        QueueLimit = 0,
-                        AutoReplenishment = true
-                    });
-            });
         });
 
         services

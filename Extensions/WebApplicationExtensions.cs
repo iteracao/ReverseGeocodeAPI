@@ -98,6 +98,7 @@ public static class WebApplicationExtensions
         {
             apiBranch.UseRateLimiter();
             apiBranch.UseMiddleware<BasicClientTokenMiddleware>();
+            apiBranch.UseMiddleware<PostAuthClientRateLimitMiddleware>();
         });
 
         app.UseAuthorization();
@@ -129,7 +130,7 @@ public static class WebApplicationExtensions
 
     public static WebApplication MapReverseGeocodeEndpoints(this WebApplication app)
     {
-        app.MapControllers().RequireRateLimiting("api-per-client");
+        app.MapControllers();
 
         app.MapGet("/health", (Services.CaopDatasetService datasetService) =>
         {
