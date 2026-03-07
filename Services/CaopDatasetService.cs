@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Index.Strtree;
 using NetTopologySuite.IO;
 using ReverseGeocodeApi.Models;
 
@@ -78,10 +79,14 @@ public sealed class CaopDatasetService
     {
         var ds = GetActiveOrLoad();
         var point = CreatePoint(lat, lon);
+        var pointEnvelope = point.EnvelopeInternal;
 
-        // V1: linear scan with envelope prefilter.
-        foreach (var r in ds.Records)
+        var candidates = ds.SpatialIndex.Query(pointEnvelope)
+            .OrderBy(c => c.Sequence);
+
+        foreach (var candidate in candidates)
         {
+            var r = candidate.Record;
             if (!r.Envelope.Contains(point.Coordinate)) continue;
             if (r.Geometry == null) continue;
 
@@ -139,6 +144,7 @@ public sealed class CaopDatasetService
 
         var wktReader = new WKTReader();
         var records = new List<FreguesiaRecord>(capacity: 4096);
+        var spatialIndex = new STRtree<IndexedFreguesiaRecord>();
 
         using var stream = OpenPossiblyGz(tsvPath);
         using var sr = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
@@ -191,7 +197,10 @@ public sealed class CaopDatasetService
             };
 
             records.Add(rec);
+            spatialIndex.Insert(rec.Envelope, new IndexedFreguesiaRecord(records.Count, rec));
         }
+
+        spatialIndex.Build();
 
         string? createdAtUtc = null;
         if (metadata != null && TryGetString(metadata.RootElement, "createdAtUtc", out var created))
@@ -199,7 +208,7 @@ public sealed class CaopDatasetService
 
         _logger.LogInformation("Loaded dataset {Dataset}: {Count} records", datasetName, records.Count);
 
-        return new LoadedDataset(datasetName, createdAtUtc, records, metadata);
+        return new LoadedDataset(datasetName, createdAtUtc, records, spatialIndex, metadata);
     }
 
     private string ResolveDataRoot()
@@ -258,7 +267,12 @@ public sealed record LoadedDataset(
     string DatasetName,
     string? CreatedAtUtc,
     IReadOnlyList<FreguesiaRecord> Records,
+    STRtree<IndexedFreguesiaRecord> SpatialIndex,
     JsonDocument? Metadata);
+
+public sealed record IndexedFreguesiaRecord(
+    int Sequence,
+    FreguesiaRecord Record);
 
 /// <summary>
 /// Reverse-geocoding response containing the administrative division identified for the supplied coordinates.
