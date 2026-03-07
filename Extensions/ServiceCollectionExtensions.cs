@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         IWebHostEnvironment environment)
     {
         services.AddControllers();
+        services.AddSingleton<ProblemFactory>();
         services.Configure<CaopOptions>(configuration.GetSection("Caop"));
         services.AddSingleton<Services.CaopDatasetService>();
 
@@ -148,6 +149,7 @@ public static class ServiceCollectionExtensions
             {
                 var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
                     .CreateLogger("RateLimiting");
+                var problemFactory = context.HttpContext.RequestServices.GetRequiredService<ProblemFactory>();
 
                 var rateLimitKey = context.HttpContext.Items.TryGetValue(HttpContextItemKeys.ApiRateLimitKey, out var keyObj)
                     ? keyObj?.ToString()
@@ -162,15 +164,15 @@ public static class ServiceCollectionExtensions
 
                 if (!context.HttpContext.Response.HasStarted)
                 {
-                    context.HttpContext.Response.ContentType = "application/problem+json";
                     context.HttpContext.Response.Headers["Retry-After"] = "60";
-
-                    await context.HttpContext.Response.WriteAsJsonAsync(new
-                    {
-                        title = "Too many requests",
-                        status = StatusCodes.Status429TooManyRequests,
-                        detail = "Rate limit exceeded. Please retry later."
-                    }, cancellationToken);
+                    await problemFactory.WriteAsync(
+                        context.HttpContext,
+                        StatusCodes.Status429TooManyRequests,
+                        "Too many requests",
+                        "Rate limit exceeded. Please retry later.",
+                        "platform",
+                        "rate_limit_ip_exceeded",
+                        cancellationToken);
                 }
             };
         });

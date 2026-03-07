@@ -149,15 +149,14 @@ public static class WebApplicationExtensions
 
         app.MapMethods("/error", new[] { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS" }, (HttpContext ctx) =>
         {
-            var traceId = Activity.Current?.Id ?? ctx.TraceIdentifier;
-
-            return Results.Problem(
-                title: "Unexpected error",
-                statusCode: StatusCodes.Status500InternalServerError,
-                extensions: new Dictionary<string, object?>
-                {
-                    ["traceId"] = traceId
-                });
+            var problemFactory = ctx.RequestServices.GetRequiredService<ProblemFactory>();
+            return problemFactory.CreateResult(
+                ctx,
+                StatusCodes.Status500InternalServerError,
+                "Unexpected error",
+                "An unexpected error occurred while processing the request.",
+                "platform",
+                "internal_error");
         });
 
         app.MapGet("/", (HttpContext http) =>
@@ -218,7 +217,7 @@ public static class WebApplicationExtensions
             return Results.Redirect($"{http.Request.PathBase}/tokens.html");
         });
 
-        app.MapPost("/logout", async (HttpContext http, IAntiforgery antiforgery) =>
+        app.MapPost("/logout", async (HttpContext http, IAntiforgery antiforgery, ProblemFactory problemFactory) =>
         {
             try
             {
@@ -226,7 +225,13 @@ public static class WebApplicationExtensions
             }
             catch (AntiforgeryValidationException)
             {
-                return Results.BadRequest("Invalid antiforgery token.");
+                return problemFactory.CreateResult(
+                    http,
+                    StatusCodes.Status400BadRequest,
+                    "Invalid request",
+                    "Invalid antiforgery token.",
+                    "platform",
+                    "csrf_invalid");
             }
 
             await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -237,17 +242,36 @@ public static class WebApplicationExtensions
             return Results.NoContent();
         }).RequireAuthorization();
 
-        app.MapGet("/auth/me", (IUserContext userCtx) =>
+        app.MapGet("/auth/me", (HttpContext http, IUserContext userCtx, ProblemFactory problemFactory) =>
         {
             if (!userCtx.IsAuthenticated) return Results.Unauthorized();
-            if (string.IsNullOrWhiteSpace(userCtx.Email)) return Results.Problem("No email claim.");
+            if (string.IsNullOrWhiteSpace(userCtx.Email))
+            {
+                return problemFactory.CreateResult(
+                    http,
+                    StatusCodes.Status500InternalServerError,
+                    "Unexpected error",
+                    "No email claim.",
+                    "platform",
+                    "internal_error");
+            }
+
             return Results.Ok(new { email = userCtx.Email });
         }).RequireAuthorization();
 
-        app.MapGet("/auth/client-token", async (IUserContext userCtx, IClientTokenStore store) =>
+        app.MapGet("/auth/client-token", async (HttpContext http, IUserContext userCtx, IClientTokenStore store, ProblemFactory problemFactory) =>
         {
             if (!userCtx.IsAuthenticated) return Results.Unauthorized();
-            if (string.IsNullOrWhiteSpace(userCtx.Email)) return Results.Problem("No email claim.");
+            if (string.IsNullOrWhiteSpace(userCtx.Email))
+            {
+                return problemFactory.CreateResult(
+                    http,
+                    StatusCodes.Status500InternalServerError,
+                    "Unexpected error",
+                    "No email claim.",
+                    "platform",
+                    "internal_error");
+            }
 
             var token = await store.TryGetAsync(userCtx.Email);
 
@@ -259,13 +283,21 @@ public static class WebApplicationExtensions
             });
         }).RequireAuthorization();
 
-        app.MapGet("/auth/antiforgery-token", (HttpContext http, IUserContext userCtx, IAntiforgery antiforgery) =>
+        app.MapGet("/auth/antiforgery-token", (HttpContext http, IUserContext userCtx, IAntiforgery antiforgery, ProblemFactory problemFactory) =>
         {
             if (!userCtx.IsAuthenticated) return Results.Unauthorized();
 
             var tokens = antiforgery.GetAndStoreTokens(http);
             if (string.IsNullOrWhiteSpace(tokens.RequestToken))
-                return Results.Problem("Unable to create antiforgery token.");
+            {
+                return problemFactory.CreateResult(
+                    http,
+                    StatusCodes.Status500InternalServerError,
+                    "Unexpected error",
+                    "Unable to create antiforgery token.",
+                    "platform",
+                    "internal_error");
+            }
 
             return Results.Ok(new
             {
@@ -273,7 +305,7 @@ public static class WebApplicationExtensions
             });
         }).RequireAuthorization();
 
-        app.MapPost("/auth/client-token", async (HttpContext http, IUserContext userCtx, IClientTokenStore store, IAntiforgery antiforgery) =>
+        app.MapPost("/auth/client-token", async (HttpContext http, IUserContext userCtx, IClientTokenStore store, IAntiforgery antiforgery, ProblemFactory problemFactory) =>
         {
             try
             {
@@ -281,11 +313,26 @@ public static class WebApplicationExtensions
             }
             catch (AntiforgeryValidationException)
             {
-                return Results.BadRequest("Invalid antiforgery token.");
+                return problemFactory.CreateResult(
+                    http,
+                    StatusCodes.Status400BadRequest,
+                    "Invalid request",
+                    "Invalid antiforgery token.",
+                    "platform",
+                    "csrf_invalid");
             }
 
             if (!userCtx.IsAuthenticated) return Results.Unauthorized();
-            if (string.IsNullOrWhiteSpace(userCtx.Email)) return Results.Problem("No email claim.");
+            if (string.IsNullOrWhiteSpace(userCtx.Email))
+            {
+                return problemFactory.CreateResult(
+                    http,
+                    StatusCodes.Status500InternalServerError,
+                    "Unexpected error",
+                    "No email claim.",
+                    "platform",
+                    "internal_error");
+            }
 
             var token = await store.IssueAsync(userCtx.Email);
 

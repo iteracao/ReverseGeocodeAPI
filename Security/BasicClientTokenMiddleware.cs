@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using ReverseGeocodeApi.Extensions;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ReverseGeocodeApi.Security;
@@ -21,7 +22,7 @@ public sealed class BasicClientTokenMiddleware
         _touchCache = touchCache;
     }
 
-    public async Task InvokeAsync(HttpContext ctx, IClientTokenStore store)
+    public async Task InvokeAsync(HttpContext ctx, IClientTokenStore store, ProblemFactory problemFactory)
     {
         var header = ctx.Request.Headers.Authorization.ToString();
 
@@ -34,7 +35,14 @@ public sealed class BasicClientTokenMiddleware
 
             ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
             ctx.Response.Headers.WWWAuthenticate = "Basic realm=\"ReverseGeocode API\"";
-            await ctx.Response.WriteAsync("Missing Authorization header.");
+            await problemFactory.WriteAsync(
+                ctx,
+                StatusCodes.Status401Unauthorized,
+                "Unauthorized",
+                "Authorization header is missing or not using Basic authentication.",
+                "platform",
+                "auth_missing_header",
+                ctx.RequestAborted);
             return;
         }
 
@@ -53,7 +61,15 @@ public sealed class BasicClientTokenMiddleware
                 ctx.Request.Path);
 
             ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await ctx.Response.WriteAsync("Invalid Basic token.");
+            ctx.Response.Headers.WWWAuthenticate = "Basic realm=\"ReverseGeocode API\"";
+            await problemFactory.WriteAsync(
+                ctx,
+                StatusCodes.Status401Unauthorized,
+                "Unauthorized",
+                "Invalid Basic token encoding.",
+                "platform",
+                "auth_invalid_basic",
+                ctx.RequestAborted);
             return;
         }
 
@@ -66,7 +82,15 @@ public sealed class BasicClientTokenMiddleware
                 ctx.Request.Path);
 
             ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await ctx.Response.WriteAsync("Invalid Basic format.");
+            ctx.Response.Headers.WWWAuthenticate = "Basic realm=\"ReverseGeocode API\"";
+            await problemFactory.WriteAsync(
+                ctx,
+                StatusCodes.Status401Unauthorized,
+                "Unauthorized",
+                "Invalid Basic token format.",
+                "platform",
+                "auth_invalid_basic",
+                ctx.RequestAborted);
             return;
         }
 
@@ -82,7 +106,15 @@ public sealed class BasicClientTokenMiddleware
                 ctx.Request.Path);
 
             ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await ctx.Response.WriteAsync("Invalid GUID.");
+            ctx.Response.Headers.WWWAuthenticate = "Basic realm=\"ReverseGeocode API\"";
+            await problemFactory.WriteAsync(
+                ctx,
+                StatusCodes.Status401Unauthorized,
+                "Unauthorized",
+                "Invalid client token format.",
+                "platform",
+                "auth_invalid_basic",
+                ctx.RequestAborted);
             return;
         }
 
@@ -98,7 +130,14 @@ public sealed class BasicClientTokenMiddleware
 
             ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
             ctx.Response.Headers.WWWAuthenticate = "Basic realm=\"ReverseGeocode API\"";
-            await ctx.Response.WriteAsync("Invalid email or token.");
+            await problemFactory.WriteAsync(
+                ctx,
+                StatusCodes.Status401Unauthorized,
+                "Unauthorized",
+                "Invalid e-mail or client token.",
+                "platform",
+                "auth_invalid_credentials",
+                ctx.RequestAborted);
             return;
         }
 

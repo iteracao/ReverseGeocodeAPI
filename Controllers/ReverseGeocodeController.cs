@@ -1,6 +1,7 @@
 namespace ReverseGeocodeApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
+using ReverseGeocodeApi.Extensions;
 using ReverseGeocodeApi.Models;
 using ReverseGeocodeApi.Services;
 
@@ -19,11 +20,16 @@ public sealed class ReverseGeocodeController : ControllerBase
 {
     private readonly CaopDatasetService _service;
     private readonly ILogger<ReverseGeocodeController> _logger;
+    private readonly ProblemFactory _problemFactory;
 
-    public ReverseGeocodeController(CaopDatasetService service, ILogger<ReverseGeocodeController> logger)
+    public ReverseGeocodeController(
+        CaopDatasetService service,
+        ILogger<ReverseGeocodeController> logger,
+        ProblemFactory problemFactory)
     {
         _service = service;
         _logger = logger;
+        _problemFactory = problemFactory;
     }
 
     /// <summary>
@@ -50,25 +56,49 @@ public sealed class ReverseGeocodeController : ControllerBase
         if (lat is null)
         {
             _logger.LogWarning("Missing reverse geocode latitude requested by {Email}", email);
-            return BadRequest("Missing required query parameter 'lat'.");
+            return _problemFactory.CreateActionResult(
+                HttpContext,
+                StatusCodes.Status400BadRequest,
+                "Invalid request",
+                "Missing required query parameter 'lat'.",
+                "api",
+                "missing_lat");
         }
 
         if (lon is null)
         {
             _logger.LogWarning("Missing reverse geocode longitude requested by {Email}", email);
-            return BadRequest("Missing required query parameter 'lon'.");
+            return _problemFactory.CreateActionResult(
+                HttpContext,
+                StatusCodes.Status400BadRequest,
+                "Invalid request",
+                "Missing required query parameter 'lon'.",
+                "api",
+                "missing_lon");
         }
 
         if (lat is < -90 or > 90)
         {
             _logger.LogWarning("Invalid reverse geocode latitude {Latitude} requested by {Email}", lat, email);
-            return BadRequest("Invalid 'lat'.");
+            return _problemFactory.CreateActionResult(
+                HttpContext,
+                StatusCodes.Status400BadRequest,
+                "Invalid latitude",
+                "Query parameter 'lat' must be between -90 and 90.",
+                "api",
+                "invalid_lat_range");
         }
 
         if (lon is < -180 or > 180)
         {
             _logger.LogWarning("Invalid reverse geocode longitude {Longitude} requested by {Email}", lon, email);
-            return BadRequest("Invalid 'lon'.");
+            return _problemFactory.CreateActionResult(
+                HttpContext,
+                StatusCodes.Status400BadRequest,
+                "Invalid longitude",
+                "Query parameter 'lon' must be between -180 and 180.",
+                "api",
+                "invalid_lon_range");
         }
 
         var result = _service.ReverseGeocode(lat.Value, lon.Value);
@@ -80,7 +110,13 @@ public sealed class ReverseGeocodeController : ControllerBase
                 lon,
                 email);
 
-            return NotFound();
+            return _problemFactory.CreateActionResult(
+                HttpContext,
+                StatusCodes.Status404NotFound,
+                "No match found",
+                "No Portuguese administrative area was found for the supplied coordinates.",
+                "api",
+                "outside_portugal");
         }
 
         _logger.LogInformation(

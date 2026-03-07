@@ -1,5 +1,6 @@
 using System.Threading.RateLimiting;
 using System.Security.Claims;
+using ReverseGeocodeApi.Extensions;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ReverseGeocodeApi.Security;
@@ -20,7 +21,7 @@ public sealed class PostAuthClientRateLimitMiddleware
         _cache = cache;
     }
 
-    public async Task InvokeAsync(HttpContext ctx)
+    public async Task InvokeAsync(HttpContext ctx, ProblemFactory problemFactory)
     {
         var email = ctx.User?.FindFirstValue(ClaimTypes.Email) ?? ctx.User?.Identity?.Name;
         var token = ctx.User?.FindFirstValue("client_token");
@@ -52,16 +53,15 @@ public sealed class PostAuthClientRateLimitMiddleware
         if (ctx.Response.HasStarted)
             return;
 
-        ctx.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        ctx.Response.ContentType = "application/problem+json";
         ctx.Response.Headers["Retry-After"] = "60";
-
-        await ctx.Response.WriteAsJsonAsync(new
-        {
-            title = "Too many requests",
-            status = StatusCodes.Status429TooManyRequests,
-            detail = "Per-client rate limit exceeded. Please retry later."
-        });
+        await problemFactory.WriteAsync(
+            ctx,
+            StatusCodes.Status429TooManyRequests,
+            "Too many requests",
+            "Per-client rate limit exceeded. Please retry later.",
+            "platform",
+            "rate_limit_client_exceeded",
+            ctx.RequestAborted);
     }
 
     private FixedWindowRateLimiter GetOrCreateLimiter(string key)
