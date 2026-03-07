@@ -120,11 +120,9 @@ public sealed class CaopDatasetService
         if (!Directory.Exists(datasetDir))
             throw new DirectoryNotFoundException($"Dataset folder not found: {datasetDir}");
 
-        JsonDocument? metadata = null;
-        if (File.Exists(metaPath))
-        {
-            metadata = JsonDocument.Parse(File.ReadAllText(metaPath, Encoding.UTF8));
-        }
+        using var metadata = File.Exists(metaPath)
+            ? JsonDocument.Parse(File.ReadAllText(metaPath, Encoding.UTF8))
+            : null;
 
         // Determine TSV file name: prefer config, but fallback to metadata.output.tsv/tsvGz if present.
         var tsvFile = Req(_options.TsvFile, "Caop:TsvFile");
@@ -218,7 +216,7 @@ public sealed class CaopDatasetService
 
         _logger.LogInformation("Loaded dataset {Dataset}: {Count} records", datasetName, records.Count);
 
-        return new LoadedDataset(datasetName, createdAtUtc, records, spatialIndex, metadata);
+        return new LoadedDataset(datasetName, createdAtUtc, records, spatialIndex);
     }
 
     private string ResolveDataRoot()
@@ -315,8 +313,7 @@ public sealed record LoadedDataset(
     string DatasetName,
     string? CreatedAtUtc,
     IReadOnlyList<FreguesiaRecord> Records,
-    STRtree<IndexedFreguesiaRecord> SpatialIndex,
-    JsonDocument? Metadata);
+    STRtree<IndexedFreguesiaRecord> SpatialIndex);
 
 public sealed record IndexedFreguesiaRecord(
     int Sequence,
