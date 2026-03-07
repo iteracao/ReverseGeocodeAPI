@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -48,6 +49,11 @@ builder.Services
         options.SlidingExpiration = true;
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
         options.Cookie.MaxAge = TimeSpan.FromDays(30);
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
 
         // For API calls return 401 instead of redirecting HTML
         options.Events.OnRedirectToLogin = context =>
@@ -56,7 +62,8 @@ builder.Services
 
             if (p.StartsWithSegments("/api") ||
                 p.StartsWithSegments("/auth/me") ||
-                p.StartsWithSegments("/auth/client-token"))
+                p.StartsWithSegments("/auth/client-token") ||
+                p.StartsWithSegments("/auth/antiforgery-token"))
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return Task.CompletedTask;
@@ -117,6 +124,10 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+});
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -444,15 +455,24 @@ app.MapGet("/auth/callback", async (HttpContext http) =>
     return Results.Redirect($"{http.Request.PathBase}/tokens.html");
 });
 
-app.MapPost("/logout", async (HttpContext http) =>
+app.MapPost("/logout", async (HttpContext http, IAntiforgery antiforgery) =>
 {
+    try
+    {
+        await antiforgery.ValidateRequestAsync(http);
+    }
+    catch (AntiforgeryValidationException)
+    {
+        return Results.BadRequest("Invalid antiforgery token.");
+    }
+
     await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     await http.SignOutAsync("External");
 
     http.Response.Cookies.Delete(".ReverseGeocode.External");
 
     return Results.NoContent();
-});
+}).RequireAuthorization();
 
 // Auth API used by tokens.html
 app.MapGet("/auth/me", (IUserContext userCtx) =>
@@ -477,8 +497,31 @@ app.MapGet("/auth/client-token", async (IUserContext userCtx, IClientTokenStore 
     });
 }).RequireAuthorization();
 
-app.MapPost("/auth/client-token", async (IUserContext userCtx, IClientTokenStore store) =>
+app.MapGet("/auth/antiforgery-token", (HttpContext http, IUserContext userCtx, IAntiforgery antiforgery) =>
 {
+    if (!userCtx.IsAuthenticated) return Results.Unauthorized();
+
+    var tokens = antiforgery.GetAndStoreTokens(http);
+    if (string.IsNullOrWhiteSpace(tokens.RequestToken))
+        return Results.Problem("Unable to create antiforgery token.");
+
+    return Results.Ok(new
+    {
+        requestToken = tokens.RequestToken
+    });
+}).RequireAuthorization();
+
+app.MapPost("/auth/client-token", async (HttpContext http, IUserContext userCtx, IClientTokenStore store, IAntiforgery antiforgery) =>
+{
+    try
+    {
+        await antiforgery.ValidateRequestAsync(http);
+    }
+    catch (AntiforgeryValidationException)
+    {
+        return Results.BadRequest("Invalid antiforgery token.");
+    }
+
     if (!userCtx.IsAuthenticated) return Results.Unauthorized();
     if (string.IsNullOrWhiteSpace(userCtx.Email)) return Results.Problem("No email claim.");
 

@@ -341,6 +341,7 @@
 
     <script>
         const $ = (id) => document.getElementById(id);
+        let csrfToken = "";
 
         function setStatus(text, kind) {
             const el = $("status");
@@ -449,8 +450,34 @@ Rate limit exceeded. Please retry later.
             return await r.json();
         }
 
+        async function loadCsrfToken() {
+            const r = await fetch('/auth/antiforgery-token', { credentials: 'include' });
+            if (!r.ok) {
+                const t = await r.text().catch(() => "");
+                throw new Error(t || ("HTTP " + r.status));
+            }
+
+            const data = await r.json();
+            const token = (data?.requestToken || "").trim();
+            if (!token) {
+                throw new Error("Missing antiforgery token.");
+            }
+
+            csrfToken = token;
+        }
+
         async function generateToken() {
-            const r = await fetch('/auth/client-token', { method: 'POST', credentials: 'include' });
+            if (!csrfToken) {
+                await loadCsrfToken();
+            }
+
+            const r = await fetch('/auth/client-token', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            });
             if (!r.ok) {
                 const t = await r.text().catch(() => "");
                 throw new Error(t || ("HTTP " + r.status));
@@ -460,7 +487,17 @@ Rate limit exceeded. Please retry later.
 
         async function doLogout() {
             try {
-                await fetch('/logout', { method: 'POST', credentials: 'include' });
+                if (!csrfToken) {
+                    await loadCsrfToken();
+                }
+
+                await fetch('/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
             } finally {
                 location.href = '/login.html';
             }
@@ -521,6 +558,8 @@ Rate limit exceeded. Please retry later.
             setStatus("Loading…", "");
             const me = await loadMe();
             if (!me) return;
+
+            await loadCsrfToken();
 
             $("email").value = me.email || "";
             $("token").value = "";
