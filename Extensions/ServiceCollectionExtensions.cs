@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Threading.RateLimiting;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.DataProtection;
@@ -177,7 +176,7 @@ public static class ServiceCollectionExtensions
 
             options.AddPolicy("api-per-client", httpContext =>
             {
-                var rateLimitKey = ResolveApiClientRateLimitKey(httpContext);
+                var rateLimitKey = $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
                 httpContext.Items[HttpContextItemKeys.ApiRateLimitKey] = rateLimitKey;
 
                 return RateLimitPartition.GetFixedWindowLimiter(
@@ -246,35 +245,5 @@ public static class ServiceCollectionExtensions
         });
 
         return services;
-    }
-
-    private static string ResolveApiClientRateLimitKey(HttpContext httpContext)
-    {
-        var authHeader = httpContext.Request.Headers.Authorization.ToString();
-        if (!string.IsNullOrWhiteSpace(authHeader) &&
-            authHeader.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
-        {
-            try
-            {
-                var encoded = authHeader["Basic ".Length..].Trim();
-                var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
-                var idx = decoded.IndexOf(':');
-                if (idx > 0)
-                {
-                    var email = decoded[..idx].Trim().ToLowerInvariant();
-                    var guidText = decoded[(idx + 1)..].Trim();
-                    if (!string.IsNullOrWhiteSpace(email) && Guid.TryParse(guidText, out var token))
-                    {
-                        return $"client:{email}:{token:N}";
-                    }
-                }
-            }
-            catch
-            {
-                // Invalid Basic header should not break rate-limiter partition selection.
-            }
-        }
-
-        return $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
     }
 }
