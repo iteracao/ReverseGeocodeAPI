@@ -96,8 +96,8 @@ public static class WebApplicationExtensions
 
         app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/api"), apiBranch =>
         {
-            apiBranch.UseMiddleware<BasicClientTokenMiddleware>();
             apiBranch.UseRateLimiter();
+            apiBranch.UseMiddleware<BasicClientTokenMiddleware>();
         });
 
         app.UseAuthorization();
