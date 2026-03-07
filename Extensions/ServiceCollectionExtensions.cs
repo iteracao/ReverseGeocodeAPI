@@ -41,6 +41,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddHttpContextAccessor();
+        services.AddMemoryCache();
         services.AddScoped<IUserContext, HttpUserContext>();
 
         services

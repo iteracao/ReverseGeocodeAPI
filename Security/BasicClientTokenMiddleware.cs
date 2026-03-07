@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ReverseGeocodeApi.Security;
 
@@ -7,11 +8,16 @@ public sealed class BasicClientTokenMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<BasicClientTokenMiddleware> _logger;
+    private readonly IMemoryCache _touchCache;
 
-    public BasicClientTokenMiddleware(RequestDelegate next, ILogger<BasicClientTokenMiddleware> logger)
+    public BasicClientTokenMiddleware(
+        RequestDelegate next,
+        ILogger<BasicClientTokenMiddleware> logger,
+        IMemoryCache touchCache)
     {
         _next = next;
         _logger = logger;
+        _touchCache = touchCache;
     }
 
     public async Task InvokeAsync(HttpContext ctx, IClientTokenStore store)
@@ -95,7 +101,10 @@ public sealed class BasicClientTokenMiddleware
             return;
         }
 
-        await store.TouchAsync(email, guid, ctx.RequestAborted);
+        if (ShouldTouchTokenToday(email, guid))
+        {
+            await store.TouchAsync(email, guid, ctx.RequestAborted);
+        }
 
         var claims = new List<Claim>
         {
@@ -116,5 +125,15 @@ public sealed class BasicClientTokenMiddleware
             ctx.Request.Path);
 
         await _next(ctx);
+    }
+
+    private bool ShouldTouchTokenToday(string email, Guid guid)
+    {
+        var cacheKey = $"token-touch:{DateTime.UtcNow:yyyyMMdd}:{email}:{guid:N}";
+        if (_touchCache.TryGetValue(cacheKey, out _))
+            return false;
+
+        _touchCache.Set(cacheKey, true, TimeSpan.FromDays(2));
+        return true;
     }
 }
