@@ -77,6 +77,9 @@ public sealed class CaopDatasetService
 
     public ReverseGeocodeResult? ReverseGeocode(double lat, double lon)
     {
+        if (!IsInsidePortugalPrecheck(lat, lon))
+            return null;
+
         var ds = GetActiveOrLoad();
         var point = CreatePoint(lat, lon);
         var pointEnvelope = point.EnvelopeInternal;
@@ -107,6 +110,15 @@ public sealed class CaopDatasetService
         }
 
         return null;
+    }
+
+    private static bool IsInsidePortugalPrecheck(double lat, double lon)
+    {
+        // Broad safety bounds for Portugal regions; avoids expensive spatial lookup for obvious misses.
+        var inContinental = lat >= 36.8 && lat <= 42.3 && lon >= -9.7 && lon <= -6.0;
+        var inMadeira = lat >= 32.3 && lat <= 33.3 && lon >= -17.6 && lon <= -16.0;
+        var inAzores = lat >= 36.5 && lat <= 40.1 && lon >= -31.7 && lon <= -24.0;
+        return inContinental || inMadeira || inAzores;
     }
 
     private LoadedDataset LoadDataset(string datasetName)
