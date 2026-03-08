@@ -10,6 +10,7 @@ using NetTopologySuite.Index.Strtree;
 using NetTopologySuite.IO;
 using ReverseGeocodeApi.Models;
 
+
 /// <summary>
 /// Loads CAOP datasets from disk and answers reverse-geocoding queries.
 /// V1: In-memory, no database.
@@ -115,6 +116,8 @@ public sealed class CaopDatasetService
     private static bool IsInsidePortugalPrecheck(double lat, double lon)
     {
         // Broad safety bounds for mainland Portugal; avoids expensive spatial lookup for obvious misses.
+        // Intentional: dataset covers mainland Portugal only.
+        // Azores and Madeira are excluded — no geometric data is present for those territories.
         var inContinental = lat >= 36.8 && lat <= 42.3 && lon >= -9.7 && lon <= -6.0;
         return inContinental;
     }
@@ -328,49 +331,3 @@ public sealed record LoadedDataset(
 public sealed record IndexedFreguesiaRecord(
     int Sequence,
     FreguesiaRecord Record);
-
-/// <summary>
-/// Reverse-geocoding response containing the administrative division identified for the supplied coordinates.
-/// </summary>
-public sealed class ReverseGeocodeResult
-{
-    /// <summary>
-    /// Dataset name used to resolve the coordinates.
-    /// </summary>
-    public string Dataset { get; set; } = "";
-
-    /// <summary>
-    /// Dataset creation timestamp in UTC, when available from the dataset metadata.
-    /// </summary>
-    public string? DatasetCreatedAtUtc { get; set; }
-
-    /// <summary>
-    /// Official DICOFRE code of the matched freguesia.
-    /// </summary>
-    public string Dicofre { get; set; } = "";
-
-    /// <summary>
-    /// Freguesia name.
-    /// </summary>
-    public string Freguesia { get; set; } = "";
-
-    /// <summary>
-    /// Concelho name.
-    /// </summary>
-    public string Concelho { get; set; } = "";
-
-    /// <summary>
-    /// Distrito name.
-    /// </summary>
-    public string Distrito { get; set; } = "";
-
-    /// <summary>
-    /// Administrative area in hectares.
-    /// </summary>
-    public double AreaHa { get; set; }
-
-    /// <summary>
-    /// Human-readable description of the matched administrative area.
-    /// </summary>
-    public string Descricao { get; set; } = "";
-}

@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 
 namespace ReverseGeocodeApi.Security;
 
@@ -85,37 +85,53 @@ WHERE RevokedAtUtc IS NULL;
         var candidate = Guid.NewGuid();
         var now = DateTime.UtcNow.ToString("O");
 
-        await using (var insCmd = conn.CreateCommand())
+        await using var tx = (SqliteTransaction)await conn.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+
+        try
         {
-            insCmd.CommandText = @"
+            await using (var insCmd = conn.CreateCommand())
+            {
+                insCmd.Transaction = tx;
+                insCmd.CommandText = @"
 INSERT OR IGNORE INTO ApiClientTokens (Token, Email, CreatedAtUtc, LastSeenAtUtc, RevokedAtUtc)
 VALUES ($token, $email, $created, $lastSeen, NULL);";
-            insCmd.Parameters.AddWithValue("$token", candidate.ToString());
-            insCmd.Parameters.AddWithValue("$email", email);
-            insCmd.Parameters.AddWithValue("$created", now);
-            insCmd.Parameters.AddWithValue("$lastSeen", now);
+                insCmd.Parameters.AddWithValue("$token", candidate.ToString());
+                insCmd.Parameters.AddWithValue("$email", email);
+                insCmd.Parameters.AddWithValue("$created", now);
+                insCmd.Parameters.AddWithValue("$lastSeen", now);
 
-            await insCmd.ExecuteNonQueryAsync(ct);
-        }
+                await insCmd.ExecuteNonQueryAsync(ct);
+            }
 
-        await using var getCmd = conn.CreateCommand();
-        getCmd.CommandText = @"
+            await using var getCmd = conn.CreateCommand();
+            getCmd.Transaction = tx;
+            getCmd.CommandText = @"
 SELECT Token
 FROM ApiClientTokens
 WHERE Email = $email AND RevokedAtUtc IS NULL
 ORDER BY CreatedAtUtc ASC
 LIMIT 1;";
-        getCmd.Parameters.AddWithValue("$email", email);
+            getCmd.Parameters.AddWithValue("$email", email);
 
-        var existing = (string?)await getCmd.ExecuteScalarAsync(ct);
-        if (!string.IsNullOrWhiteSpace(existing) && Guid.TryParse(existing, out var token))
+            var existing = (string?)await getCmd.ExecuteScalarAsync(ct);
+
+            await tx.CommitAsync(ct);
+
+            if (!string.IsNullOrWhiteSpace(existing) && Guid.TryParse(existing, out var token))
+            {
+                if (token == candidate)
+                    _logger.LogInformation("Issued new client token for {Email}", email);
+                else
+                    _logger.LogInformation("Reusing existing active client token for {Email}", email);
+
+                return token;
+            }
+
+        }
+        catch
         {
-            if (token == candidate)
-                _logger.LogInformation("Issued new client token for {Email}", email);
-            else
-                _logger.LogInformation("Reusing existing active client token for {Email}", email);
-
-            return token;
+            await tx.RollbackAsync(ct);
+            throw;
         }
 
         throw new InvalidOperationException("Failed to issue or retrieve active client token.");

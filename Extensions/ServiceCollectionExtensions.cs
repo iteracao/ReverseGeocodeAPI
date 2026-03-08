@@ -19,7 +19,15 @@ public static class ServiceCollectionExtensions
     {
         services.AddControllers();
         services.AddSingleton<ProblemFactory>();
-        services.Configure<CaopOptions>(configuration.GetSection("Caop"));
+        services.AddOptions<CaopOptions>()
+        .BindConfiguration("Caop")
+        .Validate(o => !string.IsNullOrWhiteSpace(o.ActiveDataset), "Caop:ActiveDataset is required.")
+        .Validate(o => !string.IsNullOrWhiteSpace(o.DataRoot), "Caop:DataRoot is required.")
+        .Validate(
+            o => string.Equals(o.CoordinateOrder, "LatLon", StringComparison.OrdinalIgnoreCase)
+              || string.Equals(o.CoordinateOrder, "LonLat", StringComparison.OrdinalIgnoreCase),
+            "Caop:CoordinateOrder must be 'LatLon' or 'LonLat'.")
+        .ValidateOnStart();
         services.AddSingleton<Services.CaopDatasetService>();
 
         services.AddOptions<GoogleAuthOptions>()

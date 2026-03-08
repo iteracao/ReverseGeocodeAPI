@@ -154,7 +154,7 @@ public sealed class BasicClientTokenMiddleware
 
         var identity = new ClaimsIdentity(claims, authenticationType: "BasicClientToken");
         ctx.User = new ClaimsPrincipal(identity);
-        ctx.Items["ClientEmail"] = email;
+        ctx.Items[HttpContextItemKeys.ClientEmail] = email;
 
         _logger.LogInformation(
             "API authentication succeeded for {Email} on {Method} {Path}",

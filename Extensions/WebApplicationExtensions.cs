@@ -64,6 +64,12 @@ public static class WebApplicationExtensions
                 .CreateLogger("RequestLogging");
 
             var sw = Stopwatch.StartNew();
+            ctx.Response.OnStarting(() =>
+            {
+                // Expose backend processing time in DevTools (Server-Timing).
+                ctx.Response.Headers["Server-Timing"] = $"app;dur={sw.Elapsed.TotalMilliseconds:0.###}";
+                return Task.CompletedTask;
+            });
 
             try
             {

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ReverseGeocodeApi.Extensions;
 using ReverseGeocodeApi.Models;
 using ReverseGeocodeApi.Services;
+using ReverseGeocodeApi.Security;
 
 /// <summary>
 /// Provides reverse-geocoding endpoints backed by official CAOP freguesia boundaries.
@@ -52,7 +53,7 @@ public sealed class ReverseGeocodeController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
     public IActionResult ReverseGeocode([FromQuery] double? lat, [FromQuery] double? lon)
     {
-        var email = User?.Identity?.Name ?? HttpContext.Items["ClientEmail"]?.ToString() ?? "anonymous";
+        var email = User?.Identity?.Name ?? HttpContext.Items[HttpContextItemKeys.ClientEmail]?.ToString() ?? "anonymous";
 
         if (lat is null)
         {
@@ -146,7 +147,7 @@ public sealed class ReverseGeocodeController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
     public IActionResult ListDatasets()
     {
-        var email = User?.Identity?.Name ?? HttpContext.Items["ClientEmail"]?.ToString() ?? "anonymous";
+        var email = User?.Identity?.Name ?? HttpContext.Items[HttpContextItemKeys.ClientEmail]?.ToString() ?? "anonymous";
         var list = _service.ListDatasets();
         var active = _service.GetActiveOrLoad();
 

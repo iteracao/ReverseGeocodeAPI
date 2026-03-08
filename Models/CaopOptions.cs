@@ -29,8 +29,9 @@ public sealed class CaopOptions
     public string MetadataFile { get; set; } = "metadata.json";
 
     /// <summary>
-    /// Coordinate order used by geometries inside the exported WKT.
-    /// For this project the builder exports coordinates as (lat, lon), so default is "LatLon".
+    /// Coordinate order used by geometries in the exported WKT.
+    /// Must match the upstream CAOP exporter output — which always exports (lat, lon).
+    /// Default "LatLon" must not be changed unless the upstream export format changes.
     /// Allowed values: "LatLon", "LonLat".
     /// </summary>
     public string CoordinateOrder { get; set; } = "LatLon";
