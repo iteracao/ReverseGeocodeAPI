@@ -39,27 +39,23 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
             if (_initialized)
                 return;
 
-            await using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-PRAGMA journal_mode=WAL;
-PRAGMA synchronous=NORMAL;
-
-CREATE TABLE IF NOT EXISTS ApiClientTokens (
-  Token TEXT NOT NULL PRIMARY KEY,
-  Email TEXT NOT NULL,
-  CreatedAtUtc TEXT NOT NULL,
-  LastSeenAtUtc TEXT NULL,
-  RevokedAtUtc TEXT NULL
-);
-
-CREATE INDEX IF NOT EXISTS IX_ApiClientTokens_Email
-ON ApiClientTokens(Email);
-
-CREATE UNIQUE INDEX IF NOT EXISTS UX_ApiClientTokens_Email_Active
-ON ApiClientTokens(Email)
-WHERE RevokedAtUtc IS NULL;
-";
-            await cmd.ExecuteNonQueryAsync(ct);
+            await Execute("PRAGMA journal_mode=WAL;", conn, ct);
+            await Execute("PRAGMA synchronous=NORMAL;", conn, ct);
+            await Execute(@"
+                CREATE TABLE IF NOT EXISTS ApiClientTokens (
+                Token TEXT NOT NULL PRIMARY KEY,
+                Email TEXT NOT NULL,
+                CreatedAtUtc TEXT NOT NULL,
+                LastSeenAtUtc TEXT NULL,
+                RevokedAtUtc TEXT NULL
+                );", conn, ct);
+            await Execute(@"
+                CREATE INDEX IF NOT EXISTS IX_ApiClientTokens_Email
+                ON ApiClientTokens(Email);", conn, ct);
+            await Execute(@"
+                CREATE UNIQUE INDEX IF NOT EXISTS UX_ApiClientTokens_Email_Active
+                ON ApiClientTokens(Email)
+                WHERE RevokedAtUtc IS NULL;", conn, ct);
 
             _initialized = true;
 
@@ -93,8 +89,8 @@ WHERE RevokedAtUtc IS NULL;
             {
                 insCmd.Transaction = tx;
                 insCmd.CommandText = @"
-INSERT OR IGNORE INTO ApiClientTokens (Token, Email, CreatedAtUtc, LastSeenAtUtc, RevokedAtUtc)
-VALUES ($token, $email, $created, $lastSeen, NULL);";
+                    INSERT OR IGNORE INTO ApiClientTokens (Token, Email, CreatedAtUtc, LastSeenAtUtc, RevokedAtUtc)
+                    VALUES ($token, $email, $created, $lastSeen, NULL);";
                 insCmd.Parameters.AddWithValue("$token", candidate.ToString());
                 insCmd.Parameters.AddWithValue("$email", email);
                 insCmd.Parameters.AddWithValue("$created", now);
@@ -106,11 +102,11 @@ VALUES ($token, $email, $created, $lastSeen, NULL);";
             await using var getCmd = conn.CreateCommand();
             getCmd.Transaction = tx;
             getCmd.CommandText = @"
-SELECT Token
-FROM ApiClientTokens
-WHERE Email = $email AND RevokedAtUtc IS NULL
-ORDER BY CreatedAtUtc ASC
-LIMIT 1;";
+                SELECT Token
+                FROM ApiClientTokens
+                WHERE Email = $email AND RevokedAtUtc IS NULL
+                ORDER BY CreatedAtUtc ASC
+                LIMIT 1;";
             getCmd.Parameters.AddWithValue("$email", email);
 
             var existing = (string?)await getCmd.ExecuteScalarAsync(ct);
@@ -151,10 +147,10 @@ LIMIT 1;";
 
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
-SELECT 1
-FROM ApiClientTokens
-WHERE Email = $email AND Token = $token AND RevokedAtUtc IS NULL
-LIMIT 1;";
+            SELECT 1
+            FROM ApiClientTokens
+            WHERE Email = $email AND Token = $token AND RevokedAtUtc IS NULL
+            LIMIT 1;";
         cmd.Parameters.AddWithValue("$email", email);
         cmd.Parameters.AddWithValue("$token", token.ToString());
 
@@ -176,15 +172,15 @@ LIMIT 1;";
 
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
-UPDATE ApiClientTokens
-SET LastSeenAtUtc = $now
-WHERE Email = $email
-  AND Token = $token
-  AND RevokedAtUtc IS NULL
-  AND (
-      LastSeenAtUtc IS NULL
-      OR LastSeenAtUtc < $todayUtc
-  );";
+        UPDATE ApiClientTokens
+        SET LastSeenAtUtc = $now
+        WHERE Email = $email
+          AND Token = $token
+          AND RevokedAtUtc IS NULL
+          AND (
+              LastSeenAtUtc IS NULL
+              OR LastSeenAtUtc < $todayUtc
+          );";
         cmd.Parameters.AddWithValue("$now", DateTime.UtcNow.ToString("O"));
         cmd.Parameters.AddWithValue("$todayUtc", DateTime.UtcNow.Date.ToString("O"));
         cmd.Parameters.AddWithValue("$email", email);
@@ -207,9 +203,9 @@ WHERE Email = $email
 
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
-UPDATE ApiClientTokens
-SET RevokedAtUtc = $now
-WHERE Email = $email AND Token = $token AND RevokedAtUtc IS NULL;";
+            UPDATE ApiClientTokens
+            SET RevokedAtUtc = $now
+            WHERE Email = $email AND Token = $token AND RevokedAtUtc IS NULL;";
         cmd.Parameters.AddWithValue("$now", DateTime.UtcNow.ToString("O"));
         cmd.Parameters.AddWithValue("$email", email);
         cmd.Parameters.AddWithValue("$token", token.ToString());
@@ -233,11 +229,11 @@ WHERE Email = $email AND Token = $token AND RevokedAtUtc IS NULL;";
 
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
-SELECT Token
-FROM ApiClientTokens
-WHERE Email = $email AND RevokedAtUtc IS NULL
-ORDER BY CreatedAtUtc ASC
-LIMIT 1;";
+            SELECT Token
+            FROM ApiClientTokens
+            WHERE Email = $email AND RevokedAtUtc IS NULL
+            ORDER BY CreatedAtUtc ASC
+            LIMIT 1;";
         cmd.Parameters.AddWithValue("$email", email);
 
         var existing = (string?)await cmd.ExecuteScalarAsync(ct);
@@ -245,5 +241,12 @@ LIMIT 1;";
             return g;
 
         return null;
+    }
+
+    private static async Task Execute(string sql, SqliteConnection conn, CancellationToken ct)
+    {
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = sql;
+        await cmd.ExecuteNonQueryAsync(ct);
     }
 }
