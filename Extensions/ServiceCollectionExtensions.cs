@@ -186,9 +186,17 @@ public static class ServiceCollectionExtensions
             };
         });
 
+        var home = Environment.GetEnvironmentVariable("HOME");
+
+        var appDataPath = !string.IsNullOrWhiteSpace(home)
+            ? Path.Combine(home, "data")
+            : Path.Combine(environment.ContentRootPath, "App_Data");
+
+        var keysPath = Path.Combine(appDataPath, "keys");
+
         services
             .AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(environment.ContentRootPath, "App_Data", "Keys")))
+            .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
             .SetApplicationName("ReverseGeocodeApi");
 
         services.AddSingleton<IClientTokenStore, SqliteClientTokenStore>();

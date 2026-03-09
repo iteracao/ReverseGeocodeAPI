@@ -3,8 +3,16 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Ensure App_Data exists (IIS friendly)
-Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "App_Data"));
+var home = Environment.GetEnvironmentVariable("HOME");
+
+var appDataPath = !string.IsNullOrWhiteSpace(home)
+    ? Path.Combine(home, "data")
+    : Path.Combine(builder.Environment.ContentRootPath, "App_Data");
+
+var keysPath = Path.Combine(appDataPath, "keys");
+
+Directory.CreateDirectory(appDataPath);
+Directory.CreateDirectory(keysPath);
 Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "Logs"));
 
 // Serilog

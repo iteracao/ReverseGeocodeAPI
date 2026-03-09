@@ -21,11 +21,19 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
     private volatile bool _initialized;
 
     public SqliteClientTokenStore(
-        IWebHostEnvironment env,
-        IDataProtectionProvider dataProtectionProvider,
-        ILogger<SqliteClientTokenStore> logger)
+    IWebHostEnvironment env,
+    IDataProtectionProvider dataProtectionProvider,
+    ILogger<SqliteClientTokenStore> logger)
     {
-        _dbPath = Path.Combine(env.ContentRootPath, "App_Data", "clienttokens.db");
+        var home = Environment.GetEnvironmentVariable("HOME");
+
+        var appDataPath = !string.IsNullOrWhiteSpace(home)
+            ? Path.Combine(home, "data")
+            : Path.Combine(env.ContentRootPath, "App_Data");
+
+        Directory.CreateDirectory(appDataPath);
+
+        _dbPath = Path.Combine(appDataPath, "clienttokens.db");
         _logger = logger;
         _tokenProtector = dataProtectionProvider.CreateProtector(DataProtectionPurpose);
     }
