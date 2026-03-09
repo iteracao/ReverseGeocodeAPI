@@ -1,9 +1,7 @@
 name: Build and deploy .NET Core application to Web App reversegeocodeapi
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 env:
   AZURE_WEBAPP_NAME: reversegeocodeapi
@@ -57,5 +55,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.reversegeocodeapi_9D34 }}
+          publish-profile: ${{ secrets.REVERSEGEOCODEAPI_9D34 }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
