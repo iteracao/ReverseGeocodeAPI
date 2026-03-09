@@ -20,12 +20,12 @@ using ReverseGeocodeApi.Security;
 [Tags("Reverse Geocode")]
 public sealed class ReverseGeocodeController : ControllerBase
 {
-    private readonly CaopDatasetService _service;
+    private readonly Services.ICaopDatasetService _service;
     private readonly ILogger<ReverseGeocodeController> _logger;
     private readonly ProblemFactory _problemFactory;
 
     public ReverseGeocodeController(
-        CaopDatasetService service,
+        Services.ICaopDatasetService service,
         ILogger<ReverseGeocodeController> logger,
         ProblemFactory problemFactory)
     {

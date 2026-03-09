@@ -1,4 +1,4 @@
-namespace ReverseGeocodeApi.Services;
+﻿namespace ReverseGeocodeApi.Services;
 
 using System.Globalization;
 using System.IO.Compression;
@@ -15,7 +15,7 @@ using ReverseGeocodeApi.Models;
 /// Loads CAOP datasets from disk and answers reverse-geocoding queries.
 /// V1: In-memory, no database.
 /// </summary>
-public sealed class CaopDatasetService
+public sealed class CaopDatasetService : ICaopDatasetService
 {
     private readonly ILogger<CaopDatasetService> _logger;
     private readonly CaopOptions _options;
@@ -117,7 +117,7 @@ public sealed class CaopDatasetService
     {
         // Broad safety bounds for mainland Portugal; avoids expensive spatial lookup for obvious misses.
         // Intentional: dataset covers mainland Portugal only.
-        // Azores and Madeira are excluded � no geometric data is present for those territories.
+        // Azores and Madeira are excluded — no geometric data is present for those territories.
         var inContinental = lat >= 36.8 && lat <= 42.3 && lon >= -9.7 && lon <= -6.0;
         return inContinental;
     }
@@ -331,3 +331,5 @@ public sealed record LoadedDataset(
 public sealed record IndexedFreguesiaRecord(
     int Sequence,
     FreguesiaRecord Record);
+
+

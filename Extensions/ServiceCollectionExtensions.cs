@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
             "Caop:CoordinateOrder must be 'LatLon' or 'LonLat'.")
         .ValidateOnStart();
         services.AddSingleton<Services.CaopDatasetService>();
+        services.AddSingleton<Services.ICaopDatasetService>(sp => sp.GetRequiredService<Services.CaopDatasetService>());
 
         services.AddOptions<GoogleAuthOptions>()
             .BindConfiguration("Authentication:Google")
