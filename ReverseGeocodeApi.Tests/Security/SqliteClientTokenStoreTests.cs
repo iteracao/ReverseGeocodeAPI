@@ -3,11 +3,19 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging.Abstractions;
 using ReverseGeocodeApi.Security;
 using ReverseGeocodeApi.Tests.TestSupport;
+using Xunit.Abstractions;
 
 namespace ReverseGeocodeApi.Tests.Security;
 
 public sealed class SqliteClientTokenStoreTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public SqliteClientTokenStoreTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public async Task Issue_Validate_Revoke_Works()
     {
@@ -16,13 +24,17 @@ public sealed class SqliteClientTokenStoreTests
 
         var email = "user@example.com";
         var token = await store.IssueAsync(email);
+        _output.WriteLine($"Issued token for {email}: {token}");
 
         var isValid = await store.IsValidAsync(email, token);
+        _output.WriteLine($"Validation before revoke: {isValid}");
         Assert.True(isValid);
 
         await store.RevokeAsync(email, token);
+        _output.WriteLine("Token revoked.");
 
         isValid = await store.IsValidAsync(email, token);
+        _output.WriteLine($"Validation after revoke: {isValid}");
         Assert.False(isValid);
     }
 
@@ -35,6 +47,7 @@ public sealed class SqliteClientTokenStoreTests
         var email = "duplicate@example.com";
         var token1 = await store.IssueAsync(email);
         var token2 = await store.IssueAsync(email);
+        _output.WriteLine($"Token1: {token1}, Token2: {token2}");
 
         Assert.Equal(token1, token2);
 
@@ -44,6 +57,7 @@ public sealed class SqliteClientTokenStoreTests
         cmd.CommandText = "SELECT COUNT(*) FROM ApiClientTokens WHERE Email = $email AND RevokedAtUtc IS NULL;";
         cmd.Parameters.AddWithValue("$email", email);
         var active = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+        _output.WriteLine($"Active token rows for {email}: {active}");
 
         Assert.Equal(1, active);
     }
@@ -56,6 +70,7 @@ public sealed class SqliteClientTokenStoreTests
 
         var email = "touch@example.com";
         var token = await store.IssueAsync(email);
+        _output.WriteLine($"Issued token for touch test: {token}");
 
         await using (var conn = new SqliteConnection(fixture.ConnectionString))
         {
@@ -72,6 +87,7 @@ public sealed class SqliteClientTokenStoreTests
         }
 
         await store.TouchAsync(email, token);
+        _output.WriteLine("TouchAsync executed.");
 
         await using (var conn = new SqliteConnection(fixture.ConnectionString))
         {
@@ -85,6 +101,7 @@ public sealed class SqliteClientTokenStoreTests
             cmd.Parameters.AddWithValue("$email", email);
             cmd.Parameters.AddWithValue("$tokenHash", HashToken(token));
             var value = (string?)await cmd.ExecuteScalarAsync();
+            _output.WriteLine($"LastSeenAtUtc after touch: {value}");
 
             Assert.False(string.IsNullOrWhiteSpace(value));
             var parsed = DateTime.Parse(value!, null, System.Globalization.DateTimeStyles.RoundtripKind);
@@ -100,8 +117,10 @@ public sealed class SqliteClientTokenStoreTests
 
         var email = "getter@example.com";
         var issued = await store.IssueAsync(email);
+        _output.WriteLine($"Issued token: {issued}");
 
         var got = await store.TryGetAsync(email);
+        _output.WriteLine($"TryGet token: {got}");
 
         Assert.Equal(issued, got);
     }
@@ -140,3 +159,4 @@ public sealed class SqliteClientTokenStoreTests
         }
     }
 }
+

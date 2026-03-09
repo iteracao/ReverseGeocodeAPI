@@ -6,11 +6,19 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using ReverseGeocodeApi.Extensions;
 using ReverseGeocodeApi.Security;
+using Xunit.Abstractions;
 
 namespace ReverseGeocodeApi.Tests.Security;
 
 public sealed class BasicClientTokenMiddlewareTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public BasicClientTokenMiddlewareTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public async Task MissingHeader_Returns401_WithExpectedProblemCode()
     {
@@ -22,6 +30,7 @@ public sealed class BasicClientTokenMiddlewareTests
 
         Assert.Equal(StatusCodes.Status401Unauthorized, ctx.Response.StatusCode);
         var code = await ReadProblemCodeAsync(ctx);
+        _output.WriteLine($"Status: {ctx.Response.StatusCode}, Code: {code}");
         Assert.Equal("auth_missing_header", code);
     }
 
@@ -37,6 +46,7 @@ public sealed class BasicClientTokenMiddlewareTests
 
         Assert.Equal(StatusCodes.Status401Unauthorized, ctx.Response.StatusCode);
         var code = await ReadProblemCodeAsync(ctx);
+        _output.WriteLine($"Status: {ctx.Response.StatusCode}, Code: {code}");
         Assert.Equal("auth_invalid_basic", code);
     }
 
@@ -54,6 +64,7 @@ public sealed class BasicClientTokenMiddlewareTests
 
         Assert.Equal(StatusCodes.Status401Unauthorized, ctx.Response.StatusCode);
         var code = await ReadProblemCodeAsync(ctx);
+        _output.WriteLine($"Status: {ctx.Response.StatusCode}, Code: {code}");
         Assert.Equal("auth_invalid_basic", code);
     }
 
@@ -74,6 +85,7 @@ public sealed class BasicClientTokenMiddlewareTests
         ctx.Request.Headers.Authorization = "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes(pair));
 
         await middleware.InvokeAsync(ctx, store, new ProblemFactory());
+        _output.WriteLine($"Next called: {nextCalled}, Email: {ctx.User.FindFirstValue(ClaimTypes.Email)}, TouchCalled: {store.TouchCalled}");
 
         Assert.True(nextCalled);
         Assert.Equal("user@example.com", ctx.User.FindFirstValue(ClaimTypes.Email));
@@ -131,3 +143,4 @@ public sealed class BasicClientTokenMiddlewareTests
             => Task.FromResult<Guid?>(null);
     }
 }
+

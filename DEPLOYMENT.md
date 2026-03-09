@@ -234,7 +234,7 @@ Token behavior:
 
 Production already includes:
 
-- rate limiting: **100 requests per minute**
+- rate limiting: **300 requests per minute**
 - Serilog file logging
 - `/health` monitoring endpoint
 

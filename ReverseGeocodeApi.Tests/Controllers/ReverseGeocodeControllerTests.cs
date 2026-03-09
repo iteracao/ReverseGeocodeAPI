@@ -6,11 +6,19 @@ using ReverseGeocodeApi.Controllers;
 using ReverseGeocodeApi.Extensions;
 using ReverseGeocodeApi.Models;
 using ReverseGeocodeApi.Services;
+using Xunit.Abstractions;
 
 namespace ReverseGeocodeApi.Tests.Controllers;
 
 public sealed class ReverseGeocodeControllerTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public ReverseGeocodeControllerTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public void ReverseGeocode_MissingLat_ReturnsMissingLatProblemCode()
     {
@@ -19,6 +27,7 @@ public sealed class ReverseGeocodeControllerTests
         var result = controller.ReverseGeocode(null, -8.4);
 
         AssertProblem(result, StatusCodes.Status400BadRequest, "missing_lat");
+        _output.WriteLine("missing_lat validated");
     }
 
     [Fact]
@@ -29,6 +38,7 @@ public sealed class ReverseGeocodeControllerTests
         var result = controller.ReverseGeocode(40.2, null);
 
         AssertProblem(result, StatusCodes.Status400BadRequest, "missing_lon");
+        _output.WriteLine("missing_lon validated");
     }
 
     [Fact]
@@ -39,6 +49,7 @@ public sealed class ReverseGeocodeControllerTests
         var result = controller.ReverseGeocode(120, -8.4);
 
         AssertProblem(result, StatusCodes.Status400BadRequest, "invalid_lat_range");
+        _output.WriteLine("invalid_lat_range validated");
     }
 
     [Fact]
@@ -49,6 +60,7 @@ public sealed class ReverseGeocodeControllerTests
         var result = controller.ReverseGeocode(40.2, -200);
 
         AssertProblem(result, StatusCodes.Status400BadRequest, "invalid_lon_range");
+        _output.WriteLine("invalid_lon_range validated");
     }
 
     private static ReverseGeocodeController CreateController()

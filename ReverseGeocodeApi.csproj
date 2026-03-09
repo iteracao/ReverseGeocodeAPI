@@ -8,6 +8,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <RunTestsOnBuild>false</RunTestsOnBuild>
+    <TestConsoleVerbosity>detailed</TestConsoleVerbosity>
   </PropertyGroup>
 
   <ItemGroup>
@@ -51,7 +52,7 @@
           AfterTargets="Build"
           Condition="'$(RunTestsOnBuild)' == 'true'">
     <MakeDir Directories="$(MSBuildProjectDirectory)\ReverseGeocodeApi.Tests\TestResults" />
-    <Exec Command="dotnet test &quot;$(MSBuildProjectDirectory)\ReverseGeocodeApi.Tests\ReverseGeocodeApi.Tests.csproj&quot; --logger &quot;console;verbosity=detailed&quot; --logger &quot;trx;LogFileName=test-results.trx&quot; -p:RunTestsOnBuild=false" />
+    <Exec Command="dotnet test &quot;$(MSBuildProjectDirectory)\ReverseGeocodeApi.Tests\ReverseGeocodeApi.Tests.csproj&quot; --logger &quot;console;verbosity=$(TestConsoleVerbosity)&quot; --logger &quot;trx;LogFileName=test-results.trx&quot; -p:RunTestsOnBuild=false" />
   </Target>
 
   <ItemGroup>

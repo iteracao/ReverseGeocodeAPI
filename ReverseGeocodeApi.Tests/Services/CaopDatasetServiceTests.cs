@@ -2,11 +2,19 @@
 using Microsoft.Extensions.Options;
 using ReverseGeocodeApi.Models;
 using ReverseGeocodeApi.Services;
+using Xunit.Abstractions;
 
 namespace ReverseGeocodeApi.Tests.Services;
 
 public sealed class CaopDatasetServiceTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public CaopDatasetServiceTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public void ReverseGeocode_OutsidePortugalBounds_ReturnsNull_WithoutLoadingDataset()
     {
@@ -22,6 +30,7 @@ public sealed class CaopDatasetServiceTests
 
         var result = service.ReverseGeocode(51.5, -0.12);
 
+        _output.WriteLine($"Outside precheck result: {(result is null ? "null" : "match")}, IsLoaded={service.IsLoaded}");
         Assert.Null(result);
         Assert.False(service.IsLoaded);
     }
@@ -40,6 +49,7 @@ public sealed class CaopDatasetServiceTests
         });
 
         Assert.Throws<DirectoryNotFoundException>(() => service.GetActiveOrLoad());
+        _output.WriteLine("Missing dataset folder throws DirectoryNotFoundException (expected).");
     }
 
     [Fact]
@@ -59,6 +69,7 @@ public sealed class CaopDatasetServiceTests
 
         var result = service.ReverseGeocode(40.2, -8.4);
 
+        _output.WriteLine($"LatLon result dicofre={result?.Dicofre}, freguesia={result?.Freguesia}");
         Assert.NotNull(result);
         Assert.Equal("060334", result!.Dicofre);
     }
@@ -80,6 +91,7 @@ public sealed class CaopDatasetServiceTests
 
         var result = service.ReverseGeocode(40.2, -8.4);
 
+        _output.WriteLine($"LonLat result dicofre={result?.Dicofre}, freguesia={result?.Freguesia}");
         Assert.NotNull(result);
         Assert.Equal("060334", result!.Dicofre);
     }
