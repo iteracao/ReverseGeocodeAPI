@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-    <title>Reverse Geocode API — Terms of Use & Privacy Notice</title>
+    <title>Reverse Geocode API — Terms of Use &amp; Privacy Notice</title>
     <meta name="description" content="Terms of Use and Privacy Notice for the Reverse Geocode API, including service usage rules, authentication policy, rate limiting, data processing, contact details and GDPR-related information." />
     <meta name="keywords" content="reverse geocode api terms, reverse geocode api privacy, portugal api privacy notice, reverse geocode api gdpr, caop api terms" />
     <meta name="author" content="Iteração" />
@@ -21,264 +21,21 @@
     <link rel="manifest" href="site.webmanifest" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Reverse Geocode API — Terms of Use & Privacy Notice" />
+    <meta property="og:title" content="Reverse Geocode API — Terms of Use &amp; Privacy Notice" />
     <meta property="og:description" content="Legal information for the Reverse Geocode API, including Terms of Use, Privacy Notice and support contact details." />
     <meta property="og:site_name" content="Reverse Geocode API" />
     <meta property="og:url" content="legal.html" />
 
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Reverse Geocode API — Terms of Use & Privacy Notice" />
+    <meta name="twitter:title" content="Reverse Geocode API — Terms of Use &amp; Privacy Notice" />
     <meta name="twitter:description" content="Terms of Use and Privacy Notice for the Reverse Geocode API." />
 
-    <style>
-        :root {
-            --bg1: #0b1220;
-            --bg2: #111a2e;
-            --card: rgba(15, 23, 42, .92);
-            --card2: rgba(17, 28, 51, .92);
-            --text: #e5e7eb;
-            --muted: #9ca3af;
-            --muted2: rgba(255,255,255,.68);
-            --border: rgba(255,255,255,.10);
-            --shadow: 0 18px 60px rgba(0,0,0,.35);
-            --accent: #60a5fa;
-            --accent2: #38bdf8;
-            --link: #cfe7ff;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            margin: 0;
-            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-            color: var(--text);
-            background: radial-gradient(1200px 700px at 15% 15%, rgba(26,115,232,.18), transparent 55%), radial-gradient(900px 600px at 85% 30%, rgba(0,120,212,.18), transparent 50%), linear-gradient(180deg, var(--bg1), var(--bg2));
-            padding: 36px 16px 72px;
-        }
-
-        .pageGlow {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            background: radial-gradient(600px 180px at 50% 0%, rgba(96,165,250,.08), transparent 70%), radial-gradient(320px 320px at 85% 10%, rgba(56,189,248,.07), transparent 70%);
-        }
-
-        .wrap {
-            width: 100%;
-            max-width: 980px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-            padding-bottom: clamp(60px, 8vh, 120px);
-        }
-
-        .hero {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 14px;
-            padding: 7px 12px;
-            border-radius: 999px;
-            border: 1px solid rgba(96,165,250,.22);
-            background: rgba(96,165,250,.08);
-            color: #cfe7ff;
-            font-size: 12px;
-            letter-spacing: .3px;
-            text-transform: uppercase;
-        }
-
-        .eyebrowDot {
-            width: 8px;
-            height: 8px;
-            border-radius: 999px;
-            background: linear-gradient(180deg, #60a5fa, #38bdf8);
-            box-shadow: 0 0 16px rgba(96,165,250,.9);
-        }
-
-        .brand {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .logoMark {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(145deg, rgba(26,115,232,.95), rgba(0,120,212,.85));
-            border: 1px solid rgba(255,255,255,.14);
-            box-shadow: 0 10px 30px rgba(26,115,232,.22), inset 0 1px 0 rgba(255,255,255,.22);
-            color: rgba(255,255,255,.96);
-            font-weight: 800;
-            font-size: 18px;
-            letter-spacing: .5px;
-            text-shadow: 0 1px 2px rgba(0,0,0,.25);
-            user-select: none;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 32px;
-            line-height: 1.1;
-            letter-spacing: .2px;
-        }
-
-        .subtitle {
-            max-width: 760px;
-            margin: 12px auto 0;
-            color: var(--muted2);
-            font-size: 16px;
-            line-height: 1.7;
-        }
-
-        .card {
-            background: linear-gradient(180deg, var(--card), var(--card2));
-            border: 1px solid var(--border);
-            border-radius: 22px;
-            padding: 24px;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
-        }
-
-        .toc {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 18px;
-        }
-
-            .toc a {
-                display: inline-block;
-                padding: 9px 12px;
-                border-radius: 999px;
-                border: 1px solid rgba(255,255,255,.10);
-                background: rgba(255,255,255,.04);
-                color: var(--link);
-                text-decoration: none;
-                font-size: 13px;
-            }
-
-                .toc a:hover {
-                    background: rgba(255,255,255,.07);
-                }
-
-        section + section {
-            margin-top: 24px;
-            padding-top: 24px;
-            border-top: 1px solid rgba(255,255,255,.08);
-        }
-
-        h2 {
-            margin: 0 0 10px;
-            font-size: 20px;
-            color: #f8fafc;
-        }
-
-        h3 {
-            margin: 18px 0 8px;
-            font-size: 15px;
-            color: #f8fafc;
-        }
-
-        p, li {
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.7;
-        }
-
-        ul {
-            margin: 8px 0 0 18px;
-            padding: 0;
-        }
-
-        strong {
-            color: #f3f4f6;
-        }
-
-        .infoGrid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-            margin-top: 18px;
-        }
-
-        .infoBox {
-            padding: 16px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,.08);
-            background: rgba(255,255,255,.025);
-        }
-
-            .infoBox h3 {
-                margin-top: 0;
-            }
-
-        .contactBox {
-            margin-top: 18px;
-            padding: 16px;
-            border-radius: 16px;
-            border: 1px solid rgba(96,165,250,.18);
-            background: rgba(96,165,250,.06);
-        }
-
-        a {
-            color: var(--link);
-            text-decoration: none;
-        }
-
-            a:hover {
-                text-decoration: underline;
-            }
-
-        .footer {
-            margin-top: 24px;
-            text-align: center;
-            color: rgba(255,255,255,.45);
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 720px) {
-            h1 {
-                font-size: 28px;
-            }
-
-            .subtitle {
-                font-size: 15px;
-            }
-
-            .card {
-                padding: 18px;
-                border-radius: 18px;
-            }
-
-            .infoGrid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-
+    <link rel="stylesheet" href="css/portal.css?v=20260309" />
     <script type="application/ld+json">
         {
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "name": "Reverse Geocode API — Terms of Use & Privacy Notice",
+          "name": "Reverse Geocode API - Terms of Use and Privacy Notice",
           "description": "Terms of Use and Privacy Notice for the Reverse Geocode API.",
           "url": "legal.html",
           "publisher": {
@@ -288,10 +45,11 @@
         }
     </script>
 </head>
-<body>
+<body class="legal-page">
+    <a class="skip-link" href="#toc-terms-link">Skip to main content</a>
     <div class="pageGlow" aria-hidden="true"></div>
 
-    <main class="wrap">
+    <main id="main-content" class="wrap" tabindex="-1">
         <header class="hero">
             <div class="eyebrow">
                 <span class="eyebrowDot" aria-hidden="true"></span>
@@ -300,7 +58,7 @@
 
             <div class="brand">
                 <div class="logoMark" aria-hidden="true">RG</div>
-                <h1>Terms of Use & Privacy Notice</h1>
+                <h1>Terms of Use &amp; Privacy Notice</h1>
             </div>
 
             <p class="subtitle">
@@ -311,7 +69,7 @@
 
         <div class="card">
             <nav class="toc" aria-label="Page sections">
-                <a href="#terms">Terms of Use</a>
+                <a id="toc-terms-link" href="#terms">Terms of Use</a>
                 <a href="#privacy">Privacy Notice</a>
                 <a href="#contact">Contact</a>
             </nav>
@@ -389,7 +147,7 @@
 
                 <h3>Legal basis</h3>
                 <p>
-                    Personal data is processed on the basis of the operator’s legitimate interest in providing,
+                    Personal data is processed on the basis of the operator&rsquo;s legitimate interest in providing,
                     securing and managing the service, under Article 6(1)(f) of the General Data Protection Regulation (GDPR).
                 </p>
 
@@ -425,8 +183,9 @@
             </section>
 
             <div class="footer">
-                Reverse Geocode API — © Iteração<br />
-                This page provides general legal information for the service and may be updated over time.
+                Reverse Geocode API — Terms of Use &amp; Privacy Notice<br />
+                <a href="legal.html">Terms of Use &amp; Privacy Notice</a><br />
+                Contact: <a href="mailto:info@iteracao.pt">info@iteracao.pt</a>
             </div>
         </div>
     </main>

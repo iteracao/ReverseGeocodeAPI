@@ -4,12 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-    <title>Reverse Geocode API — Credentials & Client Token</title>
+    <title>Reverse Geocode API — Credentials &amp; Client Token</title>
 
     <meta name="description" content="Manage your Reverse Geocode API client token and access credentials. Authenticate with Google or Microsoft to generate and use your API token." />
-
     <meta name="keywords" content="reverse geocode api portugal, caop reverse geocode api, dicofre api portugal, portugal administrative api, freguesia api portugal" />
-
     <meta name="author" content="Iteração" />
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#0b1220" />
@@ -22,266 +20,35 @@
     <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="manifest" href="site.webmanifest" />
 
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Reverse Geocode API — Credentials" />
     <meta property="og:description" content="Access your Reverse Geocode API credentials and generate your client token." />
     <meta property="og:site_name" content="Reverse Geocode API" />
 
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Reverse Geocode API Credentials" />
     <meta name="twitter:description" content="Generate and manage your Reverse Geocode API client token." />
 
-    <!-- Structured data -->
+    <link rel="stylesheet" href="css/portal.css?v=20260309" />
     <script type="application/ld+json">
         {
           "@context": "https://schema.org",
-          "@type": "WebApplication",
-          "name": "Reverse Geocode API",
-          "description": "API for resolving GPS coordinates into Portuguese administrative divisions using CAOP boundaries.",
-          "applicationCategory": "DeveloperApplication",
-          "operatingSystem": "Any"
+          "@type": "WebPage",
+          "name": "Reverse Geocode API - Credentials and Client Token",
+          "description": "Manage your Reverse Geocode API credentials and client token.",
+          "url": "tokens.html",
+          "publisher": {
+            "@type": "Organization",
+            "name": "Iteração"
+          }
         }
     </script>
-
-    <style>
-        :root {
-            --bg1: #0b1220;
-            --bg2: #111a2e;
-            --text: #e5e7eb;
-            --muted: #9ca3af;
-            --border: rgba(255,255,255,.10);
-            --shadow: 0 18px 60px rgba(0,0,0,.35);
-            --ok: #22c55e;
-            --warn: #f59e0b;
-            --bad: #ef4444;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html, body {
-            height: 100%;
-        }
-
-        body {
-            margin: 0;
-            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-            color: var(--text);
-            background: radial-gradient(1200px 700px at 15% 15%, rgba(26,115,232,.18), transparent 55%), radial-gradient(900px 600px at 85% 30%, rgba(0,120,212,.18), transparent 50%), linear-gradient(180deg,var(--bg1),var(--bg2));
-            padding: 28px 16px;
-        }
-
-        .wrap {
-            max-width: 860px;
-            margin: 0 auto;
-        }
-
-        .top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-            user-select: none;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logoMark {
-            width: 40px;
-            height: 40px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(145deg, rgba(26,115,232,.95), rgba(0,120,212,.85));
-            border: 1px solid rgba(255,255,255,.14);
-            box-shadow: 0 10px 30px rgba(26,115,232,.22), inset 0 1px 0 rgba(255,255,255,.22);
-            color: rgba(255,255,255,.96);
-            font-weight: 800;
-            font-size: 16px;
-            letter-spacing: .5px;
-            text-shadow: 0 1px 2px rgba(0,0,0,.25);
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 22px;
-            letter-spacing: .2px;
-        }
-
-        .logoutBtn {
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,.15);
-            background: rgba(255,255,255,.08);
-            color: var(--text);
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .logoutBtn:hover {
-            background: rgba(255,255,255,.12);
-        }
-
-        .card {
-            background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(17,28,51,.92));
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 340px minmax(0, 1fr);
-            gap: 16px;
-            align-items: start;
-        }
-
-        @media(max-width:900px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .panel {
-            border: 1px solid rgba(255,255,255,.10);
-            background: rgba(255,255,255,.03);
-            border-radius: 16px;
-            padding: 16px;
-            min-width: 0;
-        }
-
-        .panel h3 {
-            margin: 0 0 12px;
-            font-size: 16px;
-        }
-
-        .label {
-            color: rgba(255,255,255,.55);
-            font-size: 12px;
-            margin: 12px 0 6px;
-        }
-
-        .field {
-            width: 100%;
-            padding: 12px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,.12);
-            background: rgba(0,0,0,.20);
-            color: var(--text);
-            outline: none;
-            font-size: 14px;
-        }
-
-        .mono {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-            letter-spacing: .1px;
-        }
-
-        .btnRow {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 12px;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,.15);
-            background: rgba(255,255,255,.08);
-            color: var(--text);
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform .08s ease, background .18s ease, opacity .18s ease;
-        }
-
-        .btn:hover {
-            background: rgba(255,255,255,.12);
-        }
-
-        .btn:active {
-            transform: translateY(1px);
-        }
-
-        .btn.primary {
-            border-color: rgba(26,115,232,.40);
-            background: rgba(26,115,232,.18);
-        }
-
-        .btn[disabled] {
-            opacity: .45;
-            cursor: not-allowed;
-        }
-
-        .status {
-            font-size: 12px;
-            color: rgba(255,255,255,.60);
-            padding: 6px 10px;
-            border-radius: 999px;
-            border: 1px solid rgba(255,255,255,.12);
-            background: rgba(255,255,255,.03);
-            user-select: none;
-            margin-left: auto;
-            white-space: nowrap;
-        }
-
-        pre {
-            font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
-            margin: 10px 0 0;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,.10);
-            background: rgba(0,0,0,.20);
-            max-height: 160px;
-            overflow: auto;
-            font-size: 12px;
-            line-height: 1.45;
-            white-space: pre;
-        }
-
-        pre {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(26,115,232,.7) rgba(255,255,255,.04);
-        }
-
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255,255,255,.03);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, rgba(26,115,232,.6), rgba(0,120,212,.6));
-            border-radius: 10px;
-            border: 2px solid rgba(0,0,0,.25);
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(180deg, rgba(26,115,232,.9), rgba(0,120,212,.9));
-        }
-    </style>
 </head>
 
-<body>
-    <div class="wrap">
-        <div class="top">
+<body class="tokens-page">
+    <a class="skip-link" href="#logoutBtn">Skip to main content</a>
+    <main id="main-content" class="wrap" tabindex="-1">
+        <header class="top">
             <div class="brand">
                 <div class="logoMark" aria-hidden="true">RG</div>
                 <div>
@@ -290,12 +57,12 @@
             </div>
 
             <button id="logoutBtn" class="logoutBtn" type="button">Logout</button>
-        </div>
+        </header>
 
         <div class="card">
             <div class="grid">
-                <div class="panel">
-                    <h3>User</h3>
+                <section class="panel">
+                    <h2>User</h2>
 
                     <div class="label">Email</div>
                     <input id="email" class="field" readonly value="…" />
@@ -305,313 +72,40 @@
 
                     <div class="btnRow">
                         <button id="generate" class="btn primary" type="button">Generate token</button>
-                        <button id="copyGuid" class="btn" type="button" disabled>Copiar GUID</button>
-                        <span id="status" class="status">Loading…</span>
+                        <button id="copyGuid" class="btn" type="button" disabled>Copy GUID</button>
+                        <span id="status" class="status status-neutral" role="status" aria-live="polite">Loading…</span>
                     </div>
-                </div>
+                </section>
 
-                <div class="panel">
-                    <h3>How to use the API</h3>
+                <section class="panel">
+                    <h2>How to use the API</h2>
 
                     <div class="note">
                         Send this on every request:
                         <ul>
-                            <li><b>Authorization</b>: Basic base64(<i>email:guid</i>)</li>
+                            <li><strong>Authorization</strong>: Basic base64(<i>email:guid</i>)</li>
                         </ul>
                     </div>
 
                     <div class="note">
-                        Endpoint: <b>/api/v1/reverse-geocode</b><br>
-                        Parameters: <b>lat (latitude)</b>, <b>lon (longitude)</b>
+                        Endpoint: <strong>/api/v1/reverse-geocode</strong><br>
+                        Parameters: <strong>lat (latitude)</strong>, <strong>lon (longitude)</strong>
                     </div>
 
                     <pre id="curl">Generate a token to see examples.</pre>
                     <pre id="respOk">Generate a token to see examples.</pre>
                     <pre id="respErr">Generate a token to see examples.</pre>
-                </div>
+                </section>
+            </div>
+
+            <div class="footer">
+                Reverse Geocode API — Credentials &amp; Client Token<br />
+                <a href="legal.html">Terms of Use &amp; Privacy Notice</a><br />
+                Contact: <a href="mailto:info@iteracao.pt">info@iteracao.pt</a>
             </div>
         </div>
-    </div>
+    </main>
 
-    <footer style="text-align:center;margin-top:30px;color:rgba(255,255,255,.45);font-size:12px;line-height:1.6">
-        Reverse Geocode API — Portugal CAOP administrative boundaries<br />
-        <a href="legal.html" style="color:#cfe7ff;text-decoration:none;">Terms of Use &amp; Privacy Notice</a><br />
-        Contact: <a href="mailto:info@iteracao.pt" style="color:#cfe7ff;text-decoration:none;">info@iteracao.pt</a>
-    </footer>
-
-    <script>
-        const $ = (id) => document.getElementById(id);
-        let csrfToken = "";
-
-        function setStatus(text, kind) {
-            const el = $("status");
-            el.textContent = text;
-            el.style.borderColor =
-                kind === "ok" ? "rgba(34,197,94,.35)" :
-                    kind === "bad" ? "rgba(239,68,68,.35)" :
-                        kind === "warn" ? "rgba(245,158,11,.35)" :
-                            "rgba(255,255,255,.12)";
-            el.style.background =
-                kind === "ok" ? "rgba(34,197,94,.10)" :
-                    kind === "bad" ? "rgba(239,68,68,.10)" :
-                        kind === "warn" ? "rgba(245,158,11,.10)" :
-                            "rgba(255,255,255,.03)";
-        }
-
-        function updateExamples(email, guid) {
-            const appBasePath = new URL('.', window.location.href).pathname.replace(/\/$/, '');
-            const base = `${window.location.origin}${appBasePath}`;
-            const pair = `${email}:${guid}`;
-            const responseExample = `{
-  "dataset": "CAOP2025",
-  "datasetCreatedAtUtc": "2026-03-05T14:27:35.1782843Z",
-  "dicofre": "060334",
-  "freguesia": "União das freguesias de Coimbra (Sé Nova, Santa Cruz, Almedina e São Bartolomeu)",
-  "concelho": "Coimbra",
-  "distrito": "Coimbra",
-  "areaHa": 833.48,
-  "descricao": "Coimbra (Sé Nova, Santa Cruz, Almedina e São Bartolomeu)"
-}`;
-
-            $("curl").textContent =
-`Linux / macOS
-
-curl -X GET "${base}/api/v1/reverse-geocode?lat=40.2033&lon=-8.4103" \\
-  -H "Authorization: Basic $(printf '${pair}' | base64)"
-
-Windows (PowerShell)
-
-$pair = "${pair}"
-$base64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($pair))
-
-Invoke-RestMethod \`
-  -Uri "${base}/api/v1/reverse-geocode?lat=40.2033&lon=-8.4103" \`
-  -Headers @{ Authorization = "Basic $base64" } \`
-  -Method GET`;
-
-            $("respOk").textContent =
-`HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-
-${responseExample}`;
-
-            $("respErr").textContent =
-`401 Unauthorized
-Content-Type: application/problem+json
-{
-  "title": "Unauthorized",
-  "status": 401,
-  "detail": "Authorization header is missing or not using Basic authentication.",
-  "category": "platform",
-  "code": "auth_missing_header",
-  "traceId": "00-..."
-}
-
-404 Not Found
-Content-Type: application/problem+json
-{
-  "title": "No match found",
-  "status": 404,
-  "detail": "No Portuguese administrative area was found for the supplied coordinates.",
-  "category": "api",
-  "code": "outside_portugal",
-  "traceId": "00-..."
-}
-
-429 Too Many Requests
-Content-Type: application/problem+json
-{
-  "title": "Too many requests",
-  "status": 429,
-  "detail": "Per-client rate limit exceeded. Please retry later.",
-  "category": "platform",
-  "code": "rate_limit_client_exceeded",
-  "traceId": "00-..."
-}`;
-        }
-
-        async function parseProblem(response) {
-            const fallback = `HTTP ${response.status}`;
-            const contentType = (response.headers.get("content-type") || "").toLowerCase();
-
-            if (contentType.includes("application/problem+json") || contentType.includes("application/json")) {
-                try {
-                    const p = await response.json();
-                    const detail = (p?.detail || p?.title || fallback).toString();
-                    const code = (p?.code || "").toString();
-                    const category = (p?.category || "").toString();
-                    return { detail, code, category };
-                } catch {
-                    return { detail: fallback, code: "", category: "" };
-                }
-            }
-
-            try {
-                const t = (await response.text() || "").trim();
-                return { detail: t || fallback, code: "", category: "" };
-            } catch {
-                return { detail: fallback, code: "", category: "" };
-            }
-        }
-
-        function setTokenUi(email, guid) {
-            $("email").value = email || "";
-            $("token").value = guid || "";
-            $("copyGuid").disabled = !guid;
-
-            if (guid) {
-                $("generate").disabled = true;
-                updateExamples(email || "<EMAIL>", guid);
-                setStatus("Token already exists ✓", "ok");
-            } else {
-                $("generate").disabled = false;
-                $("curl").textContent = "Generate a token first to see examples.";
-                $("respOk").textContent = "Generate a token first to see examples.";
-                $("respErr").textContent = "Generate a token first to see examples.";
-                setStatus("Authenticated ✓ (generate a token whenever you need)", "ok");
-            }
-        }
-
-        async function loadMe() {
-            const r = await fetch('auth/me', { credentials: 'include' });
-            if (!r.ok) { location.href = 'login.html'; return null; }
-            return await r.json();
-        }
-
-        async function getExistingToken() {
-            const r = await fetch('auth/client-token', { credentials: 'include' });
-            if (!r.ok) {
-                console.warn("client-token GET failed", r.status);
-                return null;
-            }
-            return await r.json();
-        }
-
-        async function loadCsrfToken() {
-            const r = await fetch('auth/antiforgery-token', { credentials: 'include' });
-            if (!r.ok) {
-                const problem = await parseProblem(r);
-                const suffix = problem.code ? ` (${problem.code})` : "";
-                throw new Error(problem.detail + suffix);
-            }
-
-            const data = await r.json();
-            const token = (data?.requestToken || "").trim();
-            if (!token) {
-                throw new Error("Missing antiforgery token.");
-            }
-
-            csrfToken = token;
-        }
-
-        async function generateToken() {
-            if (!csrfToken) {
-                await loadCsrfToken();
-            }
-
-            const r = await fetch('auth/client-token', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken
-                }
-            });
-            if (!r.ok) {
-                const problem = await parseProblem(r);
-                const suffix = problem.code ? ` (${problem.code})` : "";
-                throw new Error(problem.detail + suffix);
-            }
-            return await r.json();
-        }
-
-        async function doLogout() {
-            try {
-                if (!csrfToken) {
-                    await loadCsrfToken();
-                }
-
-                await fetch('logout', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                });
-            } finally {
-                location.href = 'login.html';
-            }
-        }
-
-        $("logoutBtn").addEventListener("click", doLogout);
-
-        $("generate").addEventListener("click", async () => {
-            $("generate").disabled = true;
-            setStatus("Generating token…", "warn");
-
-            try {
-                const tok = await generateToken();
-                const email = tok.email || $("email").value || "";
-                const guid = tok.clientToken || "";
-
-                $("email").value = email;
-                $("token").value = guid;
-                $("copyGuid").disabled = !guid;
-
-                if (guid) {
-                    updateExamples(email || "<EMAIL>", guid);
-                    setStatus("Token generated ✓", "ok");
-                    $("generate").disabled = true;
-                } else {
-                    setStatus("Invalid response", "bad");
-                    $("generate").disabled = false;
-                }
-            } catch (e) {
-                setStatus(`Error generating token: ${e?.message || "unknown"}`, "bad");
-                $("token").value = "";
-                $("copyGuid").disabled = true;
-                $("curl").textContent = "Unable to generate token.";
-                $("respOk").textContent = "";
-                $("respErr").textContent = "";
-                console.error(e);
-                $("generate").disabled = false;
-            }
-        });
-
-        $("token").addEventListener("click", () => {
-            $("token").select();
-        });
-
-        $("copyGuid").addEventListener("click", async () => {
-            const guid = ($("token").value || "").trim();
-            if (!guid) return;
-
-            try {
-                await navigator.clipboard.writeText(guid);
-                setStatus("GUID copied ✓", "ok");
-            } catch {
-                setStatus("Unable to copy", "bad");
-            }
-        });
-
-        (async () => {
-            setStatus("Loading…", "");
-            const me = await loadMe();
-            if (!me) return;
-
-            await loadCsrfToken();
-
-            $("email").value = me.email || "";
-            $("token").value = "";
-            $("copyGuid").disabled = true;
-
-            const existing = await getExistingToken();
-
-            if (existing && existing.hasToken && existing.clientToken) {
-                setTokenUi(existing.email || me.email, existing.clientToken);
-            } else {
-                setTokenUi(me.email, "");
-            }
-        })();
-    </script>
+    <script src="js/portal.js?v=20260309" defer></script>
 </body>
 </html>

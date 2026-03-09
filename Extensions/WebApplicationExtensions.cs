@@ -40,7 +40,28 @@ public static class WebApplicationExtensions
                 ctx.Response.Headers["Content-Security-Policy"] =
                     "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; " +
                     "img-src 'self' data:; font-src 'self' data:; connect-src 'self'; " +
-                    "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';";
+                    "style-src 'self'; script-src 'self';";
+            }
+
+            await next();
+        });
+
+        app.Use(async (ctx, next) =>
+        {
+            static bool IsSensitiveNoStorePath(PathString path)
+            {
+                return path.Equals("/") ||
+                       path.Equals("/login") ||
+                       path.StartsWithSegments("/tokens") ||
+                       path.StartsWithSegments("/auth") ||
+                       path.StartsWithSegments("/logout");
+            }
+
+            if (IsSensitiveNoStorePath(ctx.Request.Path))
+            {
+                ctx.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+                ctx.Response.Headers["Pragma"] = "no-cache";
+                ctx.Response.Headers["Expires"] = "0";
             }
 
             await next();
@@ -119,18 +140,9 @@ public static class WebApplicationExtensions
         {
             OnPrepareResponse = ctx =>
             {
-                var ext = Path.GetExtension(ctx.File.Name);
-                if (string.Equals(ext, ".html", StringComparison.OrdinalIgnoreCase))
-                {
-                    ctx.Context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
-                    ctx.Context.Response.Headers["Pragma"] = "no-cache";
-                    ctx.Context.Response.Headers["Expires"] = "0";
-                    return;
-                }
-
-                ctx.Context.Response.Headers["Cache-Control"] = "public, max-age=86400";
-                ctx.Context.Response.Headers.Remove("Pragma");
-                ctx.Context.Response.Headers.Remove("Expires");
+                ctx.Context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+                ctx.Context.Response.Headers["Pragma"] = "no-cache";
+                ctx.Context.Response.Headers["Expires"] = "0";
             }
         });
 
