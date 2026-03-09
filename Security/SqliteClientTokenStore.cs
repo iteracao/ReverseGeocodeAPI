@@ -82,6 +82,7 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
         var now = DateTime.UtcNow.ToString("O");
 
         await using var tx = (SqliteTransaction)await conn.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        var committed = false;
 
         try
         {
@@ -112,6 +113,7 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
             var existing = (string?)await getCmd.ExecuteScalarAsync(ct);
 
             await tx.CommitAsync(ct);
+            committed = true;
 
             if (!string.IsNullOrWhiteSpace(existing) && Guid.TryParse(existing, out var token))
             {
@@ -126,7 +128,17 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
         }
         catch
         {
-            await tx.RollbackAsync(ct);
+            if (!committed)
+            {
+                try
+                {
+                    await tx.RollbackAsync(ct);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Transaction may already be completed/closed; preserve original exception.
+                }
+            }
             throw;
         }
 
