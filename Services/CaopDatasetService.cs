@@ -49,6 +49,16 @@ public sealed class CaopDatasetService : ICaopDatasetService
     /// </summary>
     public string? LoadedDatasetCreatedAtUtc => _active?.CreatedAtUtc;
 
+    public DatasetInfo GetActiveDatasetInfo()
+    {
+        var dataset = GetActiveOrLoad();
+        return new DatasetInfo
+        {
+            DatasetName = dataset.DatasetName,
+            CreatedAtUtc = dataset.CreatedAtUtc
+        };
+    }
+
     public LoadedDataset GetActiveOrLoad()
     {
         var current = _active;

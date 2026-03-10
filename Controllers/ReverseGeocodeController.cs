@@ -149,7 +149,7 @@ public sealed class ReverseGeocodeController : ControllerBase
     {
         var email = User?.Identity?.Name ?? HttpContext.Items[HttpContextItemKeys.ClientEmail]?.ToString() ?? "anonymous";
         var list = _service.ListDatasets();
-        var active = _service.GetActiveOrLoad();
+        var active = _service.GetActiveDatasetInfo();
 
         _logger.LogInformation(
             "Datasets requested by {Email}. Active dataset: {Dataset}. Available count: {Count}",

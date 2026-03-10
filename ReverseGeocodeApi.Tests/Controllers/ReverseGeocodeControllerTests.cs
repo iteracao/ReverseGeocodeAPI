@@ -93,7 +93,7 @@ public sealed class ReverseGeocodeControllerTests
 
     private sealed class StubCaopDatasetService : ICaopDatasetService
     {
-        public LoadedDataset GetActiveOrLoad() => throw new NotImplementedException();
+        public DatasetInfo GetActiveDatasetInfo() => new() { DatasetName = "CAOP2025" };
         public IReadOnlyList<string> ListDatasets() => Array.Empty<string>();
         public ReverseGeocodeResult? ReverseGeocode(double lat, double lon) => null;
     }
