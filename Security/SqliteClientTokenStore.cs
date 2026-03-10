@@ -120,7 +120,26 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
             await using var reader = await getCmd.ExecuteReaderAsync(ct);
             if (!await reader.ReadAsync(ct))
             {
-                await InsertNewTokenAsync(conn, tx, email, candidate, now, ct);
+                try
+                {
+                    await InsertNewTokenAsync(conn, tx, email, candidate, now, ct);
+                }
+                catch (SqliteException ex) when (IsUniqueConstraintViolation(ex))
+                {
+                    await tx.RollbackAsync(ct);
+                    committed = true;
+
+                    var existing = await TryReadActiveTokenAsync(conn, email, ct);
+                    if (existing.HasValue)
+                    {
+                        _logger.LogInformation(
+                            "Concurrent token issuance detected for {Email}. Reusing the existing active token.",
+                            email);
+                        return existing.Value;
+                    }
+
+                    throw;
+                }
 
                 await tx.CommitAsync(ct);
                 committed = true;
@@ -325,6 +344,38 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
         return decrypted;
     }
 
+    private async Task<Guid?> TryReadActiveTokenAsync(SqliteConnection conn, string email, CancellationToken ct)
+    {
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT Token, TokenHash
+            FROM ApiClientTokens
+            WHERE Email = $email AND RevokedAtUtc IS NULL
+            ORDER BY CreatedAtUtc ASC
+            LIMIT 1;";
+        cmd.Parameters.AddWithValue("$email", email);
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct))
+            return null;
+
+        var storedToken = reader.GetString(0);
+        var storedHash = reader.IsDBNull(1) ? null : reader.GetString(1);
+        reader.Close();
+
+        var legacyGuid = TryExtractGuid(storedToken);
+        if (legacyGuid.HasValue)
+            return legacyGuid.Value;
+
+        if (TryUnprotectGuid(storedToken, out var decryptedGuid))
+            return decryptedGuid;
+
+        if (!string.IsNullOrWhiteSpace(storedHash))
+            _logger.LogWarning("Stored token for {Email} has a hash but could not be decrypted.", email);
+
+        return null;
+    }
+
     private async Task EnsureTokenHashColumnAsync(SqliteConnection conn, CancellationToken ct)
     {
         await using var checkCmd = conn.CreateCommand();
@@ -477,4 +528,7 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
 
         return sb.ToString();
     }
+
+    private static bool IsUniqueConstraintViolation(SqliteException ex)
+        => ex.SqliteErrorCode == 19;
 }

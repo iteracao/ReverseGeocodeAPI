@@ -63,6 +63,32 @@ public sealed class SqliteClientTokenStoreTests
     }
 
     [Fact]
+    public async Task Issue_ConcurrentRequests_ReturnSameActiveToken()
+    {
+        var fixture = new TokenStoreFixture();
+        var storeA = fixture.CreateStore();
+        var storeB = fixture.CreateStore();
+        var email = "parallel@example.com";
+
+        var taskA = storeA.IssueAsync(email);
+        var taskB = storeB.IssueAsync(email);
+
+        await Task.WhenAll(taskA, taskB);
+        _output.WriteLine($"Concurrent tokens: {taskA.Result} / {taskB.Result}");
+
+        Assert.Equal(taskA.Result, taskB.Result);
+
+        await using var conn = new SqliteConnection(fixture.ConnectionString);
+        await conn.OpenAsync();
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT COUNT(*) FROM ApiClientTokens WHERE Email = $email AND RevokedAtUtc IS NULL;";
+        cmd.Parameters.AddWithValue("$email", email);
+        var active = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+
+        Assert.Equal(1, active);
+    }
+
+    [Fact]
     public async Task Touch_Updates_LastSeen_For_Older_Day()
     {
         var fixture = new TokenStoreFixture();
@@ -135,12 +161,14 @@ public sealed class SqliteClientTokenStoreTests
     private sealed class TokenStoreFixture
     {
         private readonly string _root;
+        private readonly IDataProtectionProvider _dataProtectionProvider;
 
         public TokenStoreFixture()
         {
             _root = Path.Combine(Path.GetTempPath(), "ReverseGeocodeApi.Tests", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(_root);
             Directory.CreateDirectory(Path.Combine(_root, "App_Data"));
+            _dataProtectionProvider = new EphemeralDataProtectionProvider();
 
             ConnectionString = new SqliteConnectionStringBuilder
             {
@@ -154,8 +182,7 @@ public sealed class SqliteClientTokenStoreTests
         public SqliteClientTokenStore CreateStore()
         {
             var env = new TestWebHostEnvironment { ContentRootPath = _root };
-            var dp = new EphemeralDataProtectionProvider();
-            return new SqliteClientTokenStore(env, dp, NullLogger<SqliteClientTokenStore>.Instance);
+            return new SqliteClientTokenStore(env, _dataProtectionProvider, NullLogger<SqliteClientTokenStore>.Instance);
         }
     }
 }
