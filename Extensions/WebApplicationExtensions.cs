@@ -197,7 +197,9 @@ public static class WebApplicationExtensions
                 var responseHeaders = ctx.Context.Response.Headers;
 
                 if (string.Equals(extension, ".css", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(extension, ".js", StringComparison.OrdinalIgnoreCase))
+                    string.Equals(extension, ".js", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(extension, ".svg", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(extension, ".ico", StringComparison.OrdinalIgnoreCase))
                 {
                     responseHeaders["Cache-Control"] = "public, max-age=60, immutable";
                     responseHeaders.Remove("Pragma");
