@@ -1,15 +1,11 @@
 ﻿using ReverseGeocodeApi.Extensions;
+using ReverseGeocodeApi.Pathing;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var home = Environment.GetEnvironmentVariable("HOME");
-
-var appDataPath = !string.IsNullOrWhiteSpace(home)
-    ? Path.Combine(home, "data")
-    : Path.Combine(builder.Environment.ContentRootPath, "App_Data");
-
-var keysPath = Path.Combine(appDataPath, "keys");
+var appDataPath = AppDataPaths.GetAppDataPath(builder.Environment.ContentRootPath);
+var keysPath = AppDataPaths.GetKeysPath(builder.Environment.ContentRootPath);
 
 Directory.CreateDirectory(appDataPath);
 Directory.CreateDirectory(keysPath);

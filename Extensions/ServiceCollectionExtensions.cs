@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using ReverseGeocodeApi.Models;
+using ReverseGeocodeApi.Pathing;
 using ReverseGeocodeApi.Security;
 
 namespace ReverseGeocodeApi.Extensions;
@@ -186,13 +187,7 @@ public static class ServiceCollectionExtensions
             };
         });
 
-        var home = Environment.GetEnvironmentVariable("HOME");
-
-        var appDataPath = !string.IsNullOrWhiteSpace(home)
-            ? Path.Combine(home, "data")
-            : Path.Combine(environment.ContentRootPath, "App_Data");
-
-        var keysPath = Path.Combine(appDataPath, "keys");
+        var keysPath = AppDataPaths.GetKeysPath(environment.ContentRootPath);
 
         services
             .AddDataProtection()

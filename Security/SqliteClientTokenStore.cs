@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.Sqlite;
+using ReverseGeocodeApi.Pathing;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -25,15 +26,11 @@ public sealed class SqliteClientTokenStore : IClientTokenStore
     IDataProtectionProvider dataProtectionProvider,
     ILogger<SqliteClientTokenStore> logger)
     {
-        var home = Environment.GetEnvironmentVariable("HOME");
-
-        var appDataPath = !string.IsNullOrWhiteSpace(home)
-            ? Path.Combine(home, "data")
-            : Path.Combine(env.ContentRootPath, "App_Data");
+        var appDataPath = AppDataPaths.GetAppDataPath(env.ContentRootPath);
 
         Directory.CreateDirectory(appDataPath);
 
-        _dbPath = Path.Combine(appDataPath, "clienttokens.db");
+        _dbPath = AppDataPaths.GetClientTokensDatabasePath(env.ContentRootPath);
         _logger = logger;
         _tokenProtector = dataProtectionProvider.CreateProtector(DataProtectionPurpose);
     }
