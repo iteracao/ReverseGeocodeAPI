@@ -116,7 +116,6 @@ public static class ServiceCollectionExtensions
                 options.ClientSecret = microsoftAuth.ClientSecret;
                 options.CallbackPath = "/signin-microsoft";
                 options.ResponseType = "code";
-                options.SaveTokens = true;
                 options.Scope.Clear();
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
