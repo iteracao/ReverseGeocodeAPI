@@ -63,6 +63,28 @@ public sealed class ReverseGeocodeControllerTests
         _output.WriteLine("invalid_lon_range validated");
     }
 
+    [Fact]
+    public void ReverseGeocode_NaNLat_ReturnsInvalidLatRangeProblemCode()
+    {
+        var controller = CreateController();
+
+        var result = controller.ReverseGeocode(double.NaN, -8.4);
+
+        AssertProblem(result, StatusCodes.Status400BadRequest, "invalid_lat_range");
+        _output.WriteLine("nan lat validated");
+    }
+
+    [Fact]
+    public void ReverseGeocode_InfiniteLon_ReturnsInvalidLonRangeProblemCode()
+    {
+        var controller = CreateController();
+
+        var result = controller.ReverseGeocode(40.2, double.PositiveInfinity);
+
+        AssertProblem(result, StatusCodes.Status400BadRequest, "invalid_lon_range");
+        _output.WriteLine("infinite lon validated");
+    }
+
     private static ReverseGeocodeController CreateController()
     {
         var controller = new ReverseGeocodeController(

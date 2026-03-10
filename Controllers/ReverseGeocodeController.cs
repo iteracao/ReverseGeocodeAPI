@@ -79,6 +79,18 @@ public sealed class ReverseGeocodeController : ControllerBase
                 "missing_lon");
         }
 
+        if (!double.IsFinite(lat.Value))
+        {
+            _logger.LogWarning("Non-finite reverse geocode latitude {Latitude} requested by {Email}", lat, email);
+            return _problemFactory.CreateActionResult(
+                HttpContext,
+                StatusCodes.Status400BadRequest,
+                "Invalid latitude",
+                "Query parameter 'lat' must be a finite number between -90 and 90.",
+                "api",
+                "invalid_lat_range");
+        }
+
         if (lat is < -90 or > 90)
         {
             _logger.LogWarning("Invalid reverse geocode latitude {Latitude} requested by {Email}", lat, email);
@@ -89,6 +101,18 @@ public sealed class ReverseGeocodeController : ControllerBase
                 "Query parameter 'lat' must be between -90 and 90.",
                 "api",
                 "invalid_lat_range");
+        }
+
+        if (!double.IsFinite(lon.Value))
+        {
+            _logger.LogWarning("Non-finite reverse geocode longitude {Longitude} requested by {Email}", lon, email);
+            return _problemFactory.CreateActionResult(
+                HttpContext,
+                StatusCodes.Status400BadRequest,
+                "Invalid longitude",
+                "Query parameter 'lon' must be a finite number between -180 and 180.",
+                "api",
+                "invalid_lon_range");
         }
 
         if (lon is < -180 or > 180)
