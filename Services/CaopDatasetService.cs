@@ -59,7 +59,7 @@ public sealed class CaopDatasetService : ICaopDatasetService
         };
     }
 
-    public LoadedDataset GetActiveOrLoad()
+    internal LoadedDataset GetActiveOrLoad()
     {
         var current = _active;
         if (current != null) return current;

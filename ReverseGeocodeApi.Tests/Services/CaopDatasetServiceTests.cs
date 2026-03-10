@@ -48,7 +48,7 @@ public sealed class CaopDatasetServiceTests
             CoordinateOrder = "LatLon"
         });
 
-        Assert.Throws<DirectoryNotFoundException>(() => service.GetActiveOrLoad());
+        Assert.Throws<DirectoryNotFoundException>(() => service.GetActiveDatasetInfo());
         _output.WriteLine("Missing dataset folder throws DirectoryNotFoundException (expected).");
     }
 
