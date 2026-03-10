@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -134,6 +136,57 @@ public static class WebApplicationExtensions
             }
 
             await next();
+        });
+
+        app.Use(async (ctx, next) =>
+        {
+            if (!HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method))
+            {
+                await next();
+                return;
+            }
+
+            var relativePath = ctx.Request.Path.Value switch
+            {
+                "/login.html" => "login.html",
+                "/tokens.html" => "tokens.html",
+                "/legal.html" => "legal.html",
+                _ => null
+            };
+
+            if (relativePath is null)
+            {
+                await next();
+                return;
+            }
+
+            var env = ctx.RequestServices.GetRequiredService<IWebHostEnvironment>();
+            var htmlPath = Path.Combine(env.WebRootPath, relativePath);
+            if (!File.Exists(htmlPath))
+            {
+                await next();
+                return;
+            }
+
+            var cssVersion = ComputeAssetVersion(env.WebRootPath, "css", "portal.css");
+            var jsVersion = ComputeAssetVersion(env.WebRootPath, "js", "portal.js");
+
+            var html = await File.ReadAllTextAsync(htmlPath, Encoding.UTF8, ctx.RequestAborted);
+            html = html
+                .Replace("{{PORTAL_CSS_VERSION}}", cssVersion, StringComparison.Ordinal)
+                .Replace("{{PORTAL_JS_VERSION}}", jsVersion, StringComparison.Ordinal);
+
+            ctx.Response.ContentType = "text/html; charset=utf-8";
+            ctx.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+            ctx.Response.Headers["Pragma"] = "no-cache";
+            ctx.Response.Headers["Expires"] = "0";
+
+            if (HttpMethods.IsHead(ctx.Request.Method))
+            {
+                return;
+            }
+
+            await ctx.Response.WriteAsync(html, ctx.RequestAborted);
         });
 
         app.UseStaticFiles(new StaticFileOptions
@@ -378,5 +431,13 @@ public static class WebApplicationExtensions
         }).RequireAuthorization();
 
         return app;
+    }
+
+    private static string ComputeAssetVersion(string webRootPath, params string[] pathSegments)
+    {
+        var assetPath = Path.Combine(new[] { webRootPath }.Concat(pathSegments).ToArray());
+        using var stream = File.OpenRead(assetPath);
+        var hash = SHA256.HashData(stream);
+        return Convert.ToHexString(hash[..8]).ToLowerInvariant();
     }
 }
